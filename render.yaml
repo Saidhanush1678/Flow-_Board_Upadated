@@ -3,7 +3,7 @@ services:
     name: flowboard-portal
     env: python
     buildCommand: pip install --only-binary :all: -r requirements.txt
-    startCommand: gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 --bind 0.0.0.0:$PORT app:app
+   startCommand: gunicorn -w 1 --threads 100 --bind 0.0.0.0:$PORT app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.10  # <-- Forces Render to use Python 3.11 instead of 3.14
