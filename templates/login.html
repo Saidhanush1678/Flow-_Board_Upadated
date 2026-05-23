@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowBoard Secure Gateway Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* RESET */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        /* BODY */
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)),
+                        url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1600&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            padding: 20px;
+        }
+
+        /* LOGIN CONTAINER */
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease;
+        }
+
+        /* TITLE */
+        .login-container h2 {
+            text-align: center;
+            color: #38bdf8;
+            margin-bottom: 5px;
+            font-size: 32px;
+        }
+
+        .login-container p.subtitle {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* LABEL ACCENTS */
+        .login-container label {
+            display: block;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        /* INPUTS & SELECTS */
+        .login-container input,
+        .login-container select {
+            width: 100%;
+            padding: 15px;
+            margin-top: 8px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            background: #0f172a;
+            color: white;
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        /* FOCUS AUTOMATION */
+        .login-container input:focus,
+        .login-container select:focus {
+            border: 2px solid #38bdf8;
+            transform: scale(1.02);
+        }
+
+        /* BUTTONS */
+        .login-container button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(to right, #2563eb, #7c3aed);
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-container button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* ICON SPLASH */
+        .login-icon {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 55px;
+            color: #38bdf8;
+        }
+
+        /* ERROR CONTAINER */
+        .err {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        /* ANIMATION */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0px); }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <div class="login-icon">
+        <i class="fa-solid fa-layer-group"></i>
+    </div>
+
+    <h2>FlowBoard Portal</h2>
+    <p class="subtitle">Secure Gateway Access Management Module</p>
+
+    <form method="POST" action="/login">
+
+        <label>System Account Role Profile:</label>
+        <select name="role" required>
+            <option value="">-- Choose Access Group --</option>
+            <option value="Manager">Manager Profile (Manual)</option>
+            <option value="Team Leader">Team Leader Profile (Verifies via Excel)</option>
+            <option value="Team Member">Team Member Profile</option>
+            <option value="Client">Client Space Profile</option>
+        </select>
+
+        <label>Authentication Identity Email:</label>
+        <input type="email" name="email" placeholder="name@flowboard.com" required>
+
+        <label>Account Key Signature Password:</label>
+        <input type="password" name="password" placeholder="••••••••••••" required>
+
+        <button type="submit">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            Unlock Workspace
+        </button>
+
+    </form>
+
+    {% if error %}
+        <div class="err">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+        </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

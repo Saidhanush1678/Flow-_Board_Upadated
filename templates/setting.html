@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - FlowBoard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for Dynamic Light/Dark Theme Switching */
+        :root {
+            --bg-body: #f3f5f9;
+            --bg-card: #ffffff;
+            --bg-header: #ffffff;
+            --border-color: #e2e8f0;
+            --border-input: #cbd5e1;
+            --bg-input: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --text-label: #475569;
+            --toggle-bg: #e2e8f0;
+            --disabled-text: #94a3b8;
+            --disabled-desc: #cbd5e1;
+            --disabled-bg: #f1f5f9;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0b0f19;
+            --bg-card: #141b2d;
+            --bg-header: #141b2d;
+            --border-color: #243049;
+            --border-input: #334155;
+            --bg-input: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-label: #94a3b8;
+            --toggle-bg: #334155;
+            --disabled-text: #475569;
+            --disabled-desc: #334155;
+            --disabled-bg: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Header Navbar */
+        header {
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .header-left h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .profile-nav-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Main Grid Layout Container */
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* Card Component */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-label);
+        }
+
+        /* Profile Content Settings */
+        .profile-content {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
+        }
+
+        .avatar-container {
+            width: 90px;
+            height: 90px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-input);
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            outline: none;
+        }
+
+        input[type="text"]:focus, input[type="email"]:focus {
+            border-color: #0b57d0;
+        }
+
+        /* Standard Branding Colors Buttons */
+        .btn-primary {
+            background-color: #0b57d0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: #0842a0;
+        }
+
+        .badge-admin {
+            background-color: #0b57d0;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Visual Style Selectors for Workspace Aesthetic */
+        .appearance-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .theme-options {
+            display: flex;
+            gap: 16px;
+        }
+
+        .theme-card {
+            border: 1px solid var(--border-input);
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            padding: 16px;
+            width: 120px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .theme-card.active {
+            border: 2px solid #0b57d0;
+            background-color: rgba(11, 87, 208, 0.06);
+        }
+
+        .theme-preview {
+            height: 40px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .light-preview { background-color: #f8fafc; border: 1px solid #e2e8f0; color: #0b57d0; }
+        .dark-preview { background-color: #0f172a; border: 1px solid #1e293b; color: #38bdf8; }
+
+        /* Organizations Management */
+        .team-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-input);
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .team-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .team-icon {
+            background-color: var(--border-color);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .team-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .team-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .join-team-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            border: 1px dashed var(--border-input);
+            background: none;
+            border-radius: 8px;
+            color: var(--text-label);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Notifications Panels Styling */
+        .notification-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notif-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .notif-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* System Preference Toggle Sliders */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--toggle-bg);
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #0b57d0;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Push Notifications Style Override for Inactive UI State */
+        .disabled-item .notif-title { color: var(--disabled-text); }
+        .disabled-item .notif-desc { color: var(--disabled-desc); }
+        .disabled-switch .slider { background-color: var(--disabled-bg); cursor: not-allowed; }
+        .disabled-switch .slider:before { background-color: var(--border-input); }
+
+        /* Media View Adjustments */
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; margin: 20px auto; }
+            .profile-content { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+            .inputs-grid { grid-template-columns: 1fr; width: 100%; }
+            .input-group.full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <span class="menu-icon">&#9776;</span>
+            <h1>Settings</h1>
+        </div>
+        <div>
+            <img class="profile-nav-img" src="https://via.placeholder.com/150" alt="Alex Henderson Profile">
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">👤 Profile Information</div>
+                <button class="btn-primary">Save Changes</button>
+            </div>
+            <div class="profile-content">
+                <div class="avatar-container">
+                    <img src="https://via.placeholder.com/150" alt="Alex Henderson Avatar">
+                </div>
+                <div class="inputs-grid">
+                    <div class="input-group">
+                        <label for="fullname">Full Name</label>
+                        <input type="text" id="fullname" value="Alex Henderson">
+                    </div>
+                    <div class="input-group">
+                        <label for="username">Public Username</label>
+                        <input type="text" id="username" value="@ahenderson">
+                    </div>
+                    <div class="input-group full-width">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" value="alex.h@flowboard.inc">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🎨 Appearance</div>
+            </div>
+            <p class="appearance-text">Choose your preferred workspace aesthetic.</p>
+            <div class="theme-options">
+                <div class="theme-card active" id="lightThemeBtn" onclick="setTheme('light')">
+                    <div class="theme-preview light-preview">🔵</div>
+                    <div>Light Mode</div>
+                </div>
+                <div class="theme-card" id="darkThemeBtn" onclick="setTheme('dark')">
+                    <div class="theme-preview dark-preview">🔵</div>
+                    <div>Dark Mode</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">👥 Team Access</div>
+                <span class="badge-admin">Admin</span>
+            </div>
+            <div class="team-item">
+                <div class="team-info">
+                    <div class="team-icon">🏢</div>
+                    <div>
+                        <div class="team-name">FlowBoard HQ</div>
+                        <div class="team-sub">Primary Organization</div>
+                    </div>
+                </div>
+                <div style="color: var(--text-muted);">➔</div>
+            </div>
+            <button class="join-team-btn">➕ Join another team</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">HN Notifications</div>
+            </div>
+            
+            <div class="notification-item">
+                <div>
+                    <div class="notif-title">Email Digests</div>
+                    <div class="notif-desc">Weekly activity summary of projects.</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="notification-item">
+                <div>
+                    <div class="notif-title">Desktop Alerts</div>
+                    <div class="notif-desc">Real-time task mentions and updates.</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="notification-item disabled-item">
+                <div>
+                    <div class="notif-title">Mobile Push</div>
+                    <div class="notif-desc">Notify when projects are completed.</div>
+                </div>
+                <label class="switch disabled-switch">
+                    <input type="checkbox" disabled>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function setTheme(themeName) {
+            // Set data attribute on html root token
+            document.documentElement.setAttribute('data-theme', themeName);
+            
+            // Handle active styling class changes on cards
+            const lightCard = document.getElementById('lightThemeBtn');
+            const darkCard = document.getElementById('darkThemeBtn');
+            
+            if (themeName === 'dark') {
+                darkCard.classList.add('active');
+                lightCard.classList.remove('active');
+            } else {
+                lightCard.classList.add('active');
+                darkCard.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>

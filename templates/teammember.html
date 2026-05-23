@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Member Dashboard & Production Workspace</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* ================= GLOBAL DEFINITIONS ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+        }
+
+        /* Custom Scrollbar for a premium UI feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* ================= SIDEBAR ================= */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #1e293b;
+            position: fixed;
+            padding: 25px 20px;
+            overflow: auto;
+            border-right: 1px solid #334155;
+            z-index: 10;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 35px;
+            color: #38bdf8;
+            font-size: 24px;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #94a3b8;
+            padding: 14px 18px;
+            margin-top: 10px;
+            border-radius: 12px;
+            background: transparent;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar a:hover, .sidebar a.nav-active {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* ================= MAIN CONTAINER LAYER ================= */
+        .main {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            padding: 40px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 20px;
+        }
+
+        .topbar h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        /* ================= UI INTERACTIVE COMPONENTS ================= */
+        button {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border: none;
+            padding: 12px 22px;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-1px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
+            opacity: 0.95;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #f1f5f9;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input, select, textarea.note-pad-area {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            background: #0f172a;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea.note-pad-area:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+
+        /* ================= ATTRACTIVE KPI STATS ROW ================= */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(145deg, #1e293b, #111827);
+            border: 1px solid #334155;
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            border-color: #475569;
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .kpi-data h3 {
+            font-size: 13px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-data p {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-top: 2px;
+        }
+
+        /* ================= HIGH TECH SYSTEM TELEMETRY GAUGES ================= */
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .gauge-node {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+            text-align: center;
+        }
+
+        .gauge-title {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .gauge-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #34d399;
+            margin: 5px 0;
+        }
+
+        .pulse-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #34d399;
+            border-radius: 50%;
+            margin-right: 5px;
+            box-shadow: 0 0 8px #34d399;
+            animation: pulse-glow 1.5s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 12px #34d399; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* ================= DATA TABLES & STATUS BADGES ================= */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            text-align: left;
+        }
+
+        th {
+            background: #0f172a;
+            color: #38bdf8;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            border-bottom: 1px solid #334155;
+            font-size: 15px;
+            color: #cbd5e1;
+        }
+
+        tr:hover td {
+            background: #243146;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-working {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* ================= METRIC PROGRESS BARS ================= */
+        .progress {
+            background: #0f172a;
+            height: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 200px;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+        }
+
+        /* ================= ANALYTICS CHART GRID ================= */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h3 {
+            font-size: 16px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-controls select {
+            width: auto;
+            margin-top: 0;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            background: #0f172a;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 240px;
+        }
+
+        /* ================= UTILITY CONTROLS (SEARCH & INTERACTION) ================= */
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-row input, .filter-row select {
+            margin-top: 0;
+            width: calc(50% - 8px);
+            min-width: 200px;
+        }
+
+        /* ================= AUDIT ACTIVITY TIMELINE SUITE ================= */
+        .timeline-box {
+            margin-top: 25px;
+        }
+
+        .timeline-stream {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            padding-left: 20px;
+            border-left: 2px solid #334155;
+        }
+
+        .timeline-node {
+            position: relative;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .timeline-node::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #38bdf8;
+            box-shadow: 0 0 8px #38bdf8;
+        }
+
+        .timeline-node span.time-stamp {
+            display: block;
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* ================= INTEGRATED CHAT SUITE ================= */
+        .chat-box {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #334155;
+        }
+
+        #chat {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #334155;
+        }
+
+        #chat p {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            padding: 12px 16px;
+            border-radius: 14px;
+            margin-top: 12px;
+            width: fit-content;
+            max-width: 80%;
+            font-size: 14px;
+            line-height: 1.4;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* ================= ENGINEERING PRODUCTION SUITE LAYOUT ================= */
+        .workspace-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 25px;
+            margin-top: 15px;
+        }
+
+        .sidebar-panel {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            height: 600px;
+            overflow-y: auto;
+        }
+
+        .editor-panel {
+            background: #0f172a;
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+        }
+
+        .task-node-item {
+            background: #1e293b;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #a855f7;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .task-node-item:hover {
+            background: #334155;
+            transform: translateX(3px);
+        }
+
+        textarea.code-box-engine {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background: #020617;
+            color: #34d399;
+            width: 100%;
+            height: 380px;
+            padding: 20px;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-sizing: border-box;
+            resize: none;
+            line-height: 1.6;
+            font-size: 14px;
+            outline: none;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        textarea.code-box-engine.theme-cyberpunk {
+            background: #1c1917;
+            color: #f59e0b;
+            border-color: #f59e0b;
+        }
+
+        textarea.code-box-engine:focus {
+            border-color: #34d399;
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.1);
+        }
+
+        button.action-btn {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            font-size: 15px;
+        }
+
+        /* ================= MICRO TOAST SYSTEM INFRASTRUCTURE ================= */
+        #toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast-popup {
+            background: #1e293b;
+            border-left: 4px solid #38bdf8;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+            font-size: 14px;
+            font-weight: 600;
+            color: #f8fafc;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ================= VIEW RESPONSIVENESS ================= */
+        @media(max-width:1200px) {
+            .main { margin-left: 0; width: 100%; padding: 20px; }
+            .sidebar { display: none; }
+        }
+
+        @media(max-width:992px) {
+            .workspace-layout { grid-template-columns: 1fr; }
+            .sidebar-panel { height: auto; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="toast-container"></div>
+
+    <div class="sidebar">
+        <h2><i class="fa-solid fa-cubes-gradient"></i> FlowBoard</h2>
+        <a href="#" id="nav-tasks" class="nav-active" onclick="showSection('tasks')"><i class="fa-solid fa-chart-pie"></i> Metrics & Tasks</a>
+        <a href="#" id="nav-code-workspace" onclick="showSection('code-workspace')"><i class="fa-solid fa-laptop-code"></i> Coding Station</a>
+        <a href="#" id="nav-update" onclick="showSection('update')"><i class="fa-solid fa-pen-to-square"></i> Update Matrix</a>
+        <a href="#" id="nav-chatsection" onclick="showSection('chatsection')"><i class="fa-solid fa-comments"></i> Team Room</a>
+    </div>
+
+    <div class="main">
+
+        <div class="topbar">
+            <div>
+                <h1>Team Member Dashboard</h1>
+                {% if member_email %}
+                    <p style="margin-top: 5px; color: #94a3b8;">Operational Node Account: <b style="color: #a855f7;">{{ member_email }}</b></p>
+                {% endif %}
+            </div>
+            <div class="profile">
+                <img src="https://i.pravatar.cc/100" alt="Profile Avatar">
+                <div style="text-align: right;">
+                    <p style="font-weight: 600; font-size: 14px;">Operator Node</p>
+                    <a href="#" onclick="logout()" style="color: #ef4444; text-decoration: none; font-size: 12px; font-weight: 600;">Secure Logout</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="tasks" class="section active">
+            
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8;"><i class="fa-solid fa-folder"></i></div>
+                    <div class="kpi-data"><h3>Total Modules</h3><p id="kpi-total">3</p></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="kpi-data"><h3>Completed</h3><p id="kpi-completed">1</p></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;"><i class="fa-solid fa-spinner"></i></div>
+                    <div class="kpi-data"><h3>In Progress</h3><p id="kpi-working">2</p></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i class="fa-solid fa-bolt"></i></div>
+                    <div class="kpi-data"><h3>Avg Velocity</h3><p id="kpi-avg">65%</p></div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fa-solid fa-chart-pie" style="color:#a855f7;"></i> Allocation Matrix</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="statusPieChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fa-solid fa-chart-bar" style="color:#38bdf8;"></i> Operational Pipeline</h3>
+                        <div class="chart-controls">
+                            <select id="barChartType" onchange="toggleChartLayout()">
+                                <option value="bar">Bar Layout</option>
+                                <option value="line">Line Horizon</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="progressBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>My Assigned Tasks Data Stream</h2>
+                
+                <div class="filter-row">
+                    <input type="text" id="tableSearchInput" onkeyup="filterTaskTable()" placeholder="🔍 Quick search module or project references...">
+                    <select id="tableStatusFilter" onchange="filterTaskTable()">
+                        <option value="">All Status Layers</option>
+                        <option value="working">Working</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table id="tasks-data-table">
+                        <thead>
+                            <tr>
+                                <th>Project Target</th>
+                                <th>Component Module</th>
+                                <th>Execution Status</th>
+                                <th>Progress Spectrum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td class="task-project"><b>{{ task.project }}</b></td>
+                                <td class="task-module">{{ task.module }}</td>
+                                <td>
+                                    <span class="status-badge {% if task.status == 'Completed' %}status-completed{% else %}status-working{% endif %}">
+                                        <i class="fa-solid {% if task.status == 'Completed' %}fa-circle-check{% else %}fa-circle-dot{% endif %}"></i> {{ task.status }}
+                                    </span>
+                                </td>
+                                <td class="task-progress-value" data-progress="{{ task.progress }}">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div class="progress"><div class="progress-bar" style="width:{{ task.progress }}%;"></div></div>
+                                        <span style="font-size: 13px; font-weight: 600; color: #94a3b8;">{{ task.progress }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td class="task-project"><b>Project Alpha</b></td>
+                                <td class="task-module">Authentication Middleware Matrix</td>
+                                <td><span class="status-badge status-working"><i class="fa-solid fa-circle-dot"></i> Working</span></td>
+                                <td class="task-progress-value" data-progress="65">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div class="progress"><div class="progress-bar" style="width:65%;"></div></div>
+                                        <span style="font-size: 13px; font-weight: 600; color: #94a3b8;">65%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="task-project"><b>Beta Network</b></td>
+                                <td class="task-module">Data Routing Synchronizer Pipeline</td>
+                                <td><span class="status-badge status-completed"><i class="fa-solid fa-circle-check"></i> Completed</span></td>
+                                <td class="task-progress-value" data-progress="100">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div class="progress"><div class="progress-bar" style="width:100%; background: linear-gradient(to right, #10b981, #059669);"></div></div>
+                                        <span style="font-size: 13px; font-weight: 600; color: #34d399;">100%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="task-project"><b>Project Alpha</b></td>
+                                <td class="task-module">E2E Web UI Matrix Layer</td>
+                                <td><span class="status-badge status-working"><i class="fa-solid fa-circle-dot"></i> Working</span></td>
+                                <td class="task-progress-value" data-progress="30">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div class="progress"><div class="progress-bar" style="width:30%;"></div></div>
+                                        <span style="font-size: 13px; font-weight: 600; color: #94a3b8;">30%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                <div class="card" style="margin-bottom:0;">
+                    <h2><i class="fa-solid fa-server" style="color: #34d399;"></i> Node Diagnostics</h2>
+                    <div class="telemetry-grid">
+                        <div class="gauge-node">
+                            <div class="gauge-title">CPU Compute</div>
+                            <div class="gauge-value" id="diag-cpu">34%</div>
+                            <div style="font-size:11px; color:#64748b;"><span class="pulse-indicator"></span>Optimal Threading</div>
+                        </div>
+                        <div class="gauge-node">
+                            <div class="gauge-title">Memory Allocation</div>
+                            <div class="gauge-value" id="diag-ram">5.2 GB</div>
+                            <div style="font-size:11px; color:#64748b;">Cache Buffer Stream</div>
+                        </div>
+                        <div class="gauge-node">
+                            <div class="gauge-title">Network Latency</div>
+                            <div class="gauge-value" style="color:#38bdf8;" id="diag-ping">12 ms</div>
+                            <div style="font-size:11px; color:#64748b;">Direct Pipeline Sync</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:0;">
+                    <h2><i class="fa-solid fa-note-sticky" style="color: #f59e0b;"></i> Glassmorphism Quick Scribble Pad</h2>
+                    <textarea class="note-pad-area" style="margin-top:0; height:105px; resize:none;" placeholder="Dump rapid task metrics logs or query stack arrays here temporarily..."></textarea>
+                </div>
+            </div>
+
+            <div class="card timeline-box">
+                <h2><i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8; margin-right: 8px;"></i> Functional Stream Live Audit Trail</h2>
+                <div class="timeline-stream">
+                    <div class="timeline-node">
+                        Dashboard system workspace compilation completed. Baseline telemetry operational.
+                        <span class="time-stamp">Just Now &bull; System Engine</span>
+                    </div>
+                    <div class="timeline-node">
+                        Cloud runtime synchronization established back to master ledger sheets successfully.
+                        <span class="time-stamp">14 minutes ago &bull; Sync Pipeline</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="code-workspace" class="section">
+            <div class="card">
+                <h2><i class="fa-solid fa-laptop-code" style="color: #38bdf8;"></i> Engineering Production Hub</h2>
+                 
+                <div class="workspace-layout">
+                    <div class="sidebar-panel">
+                        <h3 style="font-size: 14px; color: #94a3b8; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-folder-tree"></i> Code Packages</h3>
+                        {% if not tasks %}
+                            <p style="color: #64748b; font-style: italic; font-size: 13px;">No functional components allocated to this node matrix yet.</p>
+                        {% endif %}
+                        
+                        {% for t in tasks %}
+                        <div class="task-node-item" onclick="loadProductionFile('{{ t.filename }}', '{{ t.module }}')">
+                            <h3 style="font-size: 15px; color: #f8fafc;">{{ t.module }}</h3>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0 0;">Project Reference: <b>{{ t.project }}</b></p>
+                            <code style="display:block; margin-top: 8px; color: #f472b6; font-size: 11px; word-break: break-all; background: #0f172a; padding: 4px 8px; border-radius: 6px;">📄 {{ t.filename }}</code>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="editor-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h3 style="margin:0; color: #38bdf8; font-size: 16px;"><i class="fa-solid fa-terminal"></i> Cloud IDE Engine Stream</h3>
+                                <p style="margin: 3px 0 0 0; font-size: 13px; color: #94a3b8;">Target System Config: <span id="ide-filename-tag" style="color: #34d399; font-weight: 600;">Select operational bundle package</span></p>
+                            </div>
+                            <div style="width: 200px;">
+                                <button class="action-btn" onclick="saveCurrentProductionCode()"><i class="fa-solid fa-cloud-arrow-up"></i> Sync Changes</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:15px; background:#0f172a; padding: 10px; border-radius:8px; display:flex; gap:15px; align-items:center; border: 1px solid #1e293b; flex-wrap: wrap;">
+                            <span style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Workspace Deck:</span>
+                            <a href="#" onclick="toggleWorkspaceTheme()" style="color:#38bdf8; text-decoration:none; font-size:12px; font-weight:600;"><i class="fa-solid fa-palette"></i> Switch Color Theme</a>
+                            
+                            <select id="codeSnippetSelector" onchange="injectCodeSnippet()" style="margin-top:0; padding:4px 8px; font-size:11px; border-radius:4px; background:#1e293b; width:auto; border-color:#334155;">
+                                <option value="">⚡ Inject Snippet Layout</option>
+                                <option value="api">Python REST API Route Blueprint</option>
+                                <option value="fetch">JS Fetch Async Node Module</option>
+                            </select>
+
+                            <a href="#" onclick="clearWorkspaceBuffer()" style="color:#ef4444; text-decoration:none; font-size:12px; font-weight:600; margin-left:auto;"><i class="fa-solid fa-trash-can"></i> Flush Buffer</a>
+                        </div>
+
+                        <textarea id="production-ide-textarea" class="code-box-engine" spellcheck="false" placeholder="// Select a software package file from the matrix listing architecture layout structure on the left panel to begin cloud engineering execution computations..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="update" class="section">
+            <div class="card">
+                <h2>Update Task Progress Matrix Architecture</h2>
+                {% for task in tasks %}
+                <form action="/update_task/{{ loop.index0 }}" method="POST" style="border-bottom: 1px solid #334155; padding-bottom: 25px; margin-bottom: 25px;">
+                    <h3 style="color: #38bdf8; font-size: 16px;">
+                        {{ task.project }} &mdash; <span style="color:#fff;">{{ task.module }}</span>
+                    </h3>
+
+                    <select name="status">
+                        <option value="Working" {% if task.status == 'Working' %}selected{% endif %}>Working</option>
+                        <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    </select>
+
+                    <input type="number" name="progress" min="0" max="100" value="{{ task.progress }}" placeholder="Progress % Matrix Scale" required>
+
+                    <button type="submit" style="margin-top: 15px;">Commit Data Pipeline Sync</button>
+                </form>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="chatsection" class="section">
+            <div class="chat-box">
+                <h2>Live Broadcast Team Pipeline Channel</h2>
+                 
+                <div id="chat"></div>
+
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <input type="text" id="msg" placeholder="Type data stream payload package entry packet..." style="margin-top: 0;">
+                    <button onclick="sendMessage()" style="margin-top: 0; white-space: nowrap;"><i class="fa-solid fa-paper-plane"></i> Dispatch Msg</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let targetWorkspaceFile = "";
+        let progressChartInstance = null; 
+        const socket = io();
+
+        // High Fidelity view routing handler
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('nav-active'));
+            
+            document.getElementById(id).classList.add('active');
+            document.getElementById('nav-' + id).classList.add('nav-active');
+            launchNotificationNotice(`Viewing Partition: ${id.toUpperCase()}`);
+        }
+
+        function logout() {
+            window.location.href = "/login";
+        }
+
+        /* DYNAMIC POPUP TOAST SYSTEM ENGINE */
+        function launchNotificationNotice(textString) {
+            const wrapper = document.getElementById("toast-container");
+            const pop = document.createElement("div");
+            pop.className = "toast-popup";
+            pop.innerText = `✨ ${textString}`;
+            wrapper.appendChild(pop);
+            setTimeout(() => {
+                pop.style.opacity = "0";
+                pop.style.transform = "translateY(-10px)";
+                pop.style.transition = "all 0.4s ease";
+                setTimeout(() => pop.remove(), 400);
+            }, 3000);
+        }
+
+        /* LIVE TELEMETRY SIMULATION REFRESHER */
+        setInterval(() => {
+            if(document.getElementById("tasks").classList.contains("active")) {
+                const cpuVal = Math.floor(Math.random() * (45 - 20) + 20) + "%";
+                const pingVal = Math.floor(Math.random() * (22 - 8) + 8) + " ms";
+                document.getElementById("diag-cpu").innerText = cpuVal;
+                document.getElementById("diag-ping").innerText = pingVal;
+            }
+        }, 4000);
+
+        /* BOILERPLATE INJECTOR ENGINE */
+        function injectCodeSnippet() {
+            const selector = document.getElementById("codeSnippetSelector");
+            const textarea = document.getElementById("production-ide-textarea");
+            
+            const blueprints = {
+                api: `@app.route('/api/v1/stream', methods=['POST'])\ndef handle_data_stream():\n    payload = request.get_json()\n    return jsonify({"status": "synced", "data": payload}), 200`,
+                fetch: `async function syncPipelineData(endpoint) {\n    const response = await fetch(endpoint);\n    const matrixData = await response.json();\n    return matrixData;\n}`
+            };
+
+            if(selector.value && blueprints[selector.value]) {
+                textarea.value += (textarea.value ? "\n\n" : "") + blueprints[selector.value];
+                launchNotificationNotice(`Injected blueprint snippet into work frame.`);
+                selector.value = ""; // reset control
+            }
+        }
+
+        /* CLIENT SIDE TABLE ROW LIVE SEARCH / FILTERS */
+        function filterTaskTable() {
+            const query = document.getElementById("tableSearchInput").value.toLowerCase();
+            const filterState = document.getElementById("tableStatusFilter").value.toLowerCase();
+            const rows = document.querySelectorAll("#tasks-data-table tbody tr");
+
+            rows.forEach(row => {
+                const projectText = row.querySelector(".task-project").innerText.toLowerCase();
+                const moduleText = row.querySelector(".task-module").innerText.toLowerCase();
+                const badgeText = row.querySelector(".status-badge").innerText.toLowerCase();
+
+                const searchMatches = projectText.includes(query) || moduleText.includes(query);
+                const statusMatches = filterState === "" || badgeText.includes(filterState);
+
+                if(searchMatches && statusMatches) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        /* IDE EXTRA UTILITY HOOKS */
+        function toggleWorkspaceTheme() {
+            const el = document.getElementById("production-ide-textarea");
+            el.classList.toggle("theme-cyberpunk");
+            launchNotificationNotice("IDE Editor Color Workspace Palette Theme Shifted");
+        }
+
+        function clearWorkspaceBuffer() {
+            if(confirm("Confirm action: Flush code execution work area clean?")) {
+                document.getElementById("production-ide-textarea").value = "";
+                launchNotificationNotice("IDE Workspace text zone flushed.");
+            }
+        }
+
+        /* IDE STORAGE CORE SYNCHRONIZER ACTIONS */
+        function loadProductionFile(filename, moduleName) {
+            targetWorkspaceFile = filename;
+            document.getElementById("ide-filename-tag").innerText = `${moduleName} (${filename})`;
+            
+            fetch(`/load_code/${filename}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("production-ide-textarea").value = data.code;
+                    launchNotificationNotice(`Successfully pulled ${filename}`);
+                })
+                .catch(err => console.error("Error pulling baseline architecture elements:", err));
+        }
+
+        function saveCurrentProductionCode() {
+            if (!targetWorkspaceFile) {
+                alert("Select an architecture module package before sync requests.");
+                return;
+            }
+            const rawCode = document.getElementById("production-ide-textarea").value;
+
+            fetch('/save_code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: targetWorkspaceFile, code: rawCode })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    launchNotificationNotice("Changes safely committed to configuration records.");
+                } else {
+                    alert("⚠️ Error processing database architecture updates: " + (data.message || "Unknown anomaly"));
+                }
+            })
+            .catch(err => console.error("Data pipeline writing error:", err));
+        }
+
+        /* WEB SOCKET REAL-TIME COMMS ENGINE */
+        function sendMessage() {
+            let msgInput = document.getElementById("msg");
+            let msg = msgInput.value;
+            if(msg.trim() !== "") {
+                socket.send(msg);
+                msgInput.value = "";
+            }
+        }
+
+        socket.on('message', function(msg) {
+            const chatBox = document.getElementById("chat");
+            chatBox.innerHTML += `<p>${msg}</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        document.getElementById("msg").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") sendMessage();
+        });
+
+        /* ================= DYNAMIC ANALYTICS PLOTTING ENGINE ARCHITECTURE ================= */
+        let globalModules = [];
+        let globalProgress = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const moduleNodes = document.querySelectorAll(".task-module");
+            const progressNodes = document.querySelectorAll(".task-progress-value");
+            const tableRows = document.querySelectorAll("#tasks-data-table tbody tr");
+
+            let workingCount = 0;
+            let completedCount = 0;
+            let totalProgressAccumulator = 0;
+
+            tableRows.forEach((row, i) => {
+                if(moduleNodes[i]) {
+                    globalModules.push(moduleNodes[i].innerText);
+                    let val = parseInt(progressNodes[i].getAttribute("data-progress")) || 0;
+                    globalProgress.push(val);
+                    totalProgressAccumulator += val;
+
+                    let statusNode = row.querySelector(".status-badge");
+                    let txt = statusNode ? statusNode.innerText.toLowerCase() : "";
+                    if(txt.includes("completed")) completedCount++; else workingCount++;
+                }
+            });
+
+            // Default mock variables mapping if zero objects rendered down from host server environment
+            if (globalModules.length === 0) {
+                globalModules = ["Auth Matrix", "Data Router", "UI Layer"];
+                globalProgress = [65, 100, 30];
+                workingCount = 2;
+                completedCount = 1;
+                totalProgressAccumulator = 195;
+            }
+
+            let totalCount = workingCount + completedCount;
+            let calculatedAverage = totalCount > 0 ? Math.round(totalProgressAccumulator / totalCount) : 0;
+
+            document.getElementById("kpi-total").innerText = totalCount;
+            document.getElementById("kpi-completed").innerText = completedCount;
+            document.getElementById("kpi-working").innerText = workingCount;
+            document.getElementById("kpi-avg").innerText = calculatedAverage + "%";
+
+            // Doughnut Allocation Status Configuration Structure
+            const ctxPie = document.getElementById('statusPieChart').getContext('2d');
+            new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Working', 'Completed'],
+                    datasets: [{
+                        data: [workingCount, completedCount],
+                        backgroundColor: ['#a855f7', '#10b981'],
+                        borderColor: '#1e293b',
+                        borderWidth: 3,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12, weight: '500' } } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            renderProgressGraph('bar');
+        });
+
+        function toggleChartLayout() {
+            const layoutSelection = document.getElementById("barChartType").value;
+            renderProgressGraph(layoutSelection);
+        }
+
+        function renderProgressGraph(chartType) {
+            const ctxBar = document.getElementById('progressBarChart').getContext('2d');
+            
+            if (progressChartInstance) {
+                progressChartInstance.destroy();
+            }
+
+            progressChartInstance = new Chart(ctxBar, {
+                type: chartType,
+                data: {
+                    labels: globalModules,
+                    datasets: [{
+                        label: 'Completion Progress Spectrum',
+                        data: globalProgress,
+                        backgroundColor: chartType === 'bar' ? '#2563eb' : 'rgba(56, 189, 248, 0.2)',
+                        borderColor: '#38bdf8',
+                        borderWidth: chartType === 'bar' ? 0 : 3,
+                        borderRadius: chartType === 'bar' ? 8 : 0,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+                        y: { min: 0, max: 100, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 11 } } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

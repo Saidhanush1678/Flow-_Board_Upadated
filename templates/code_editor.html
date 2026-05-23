@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Split Architecture Code Pipeline Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#0f172a; color:white; font-family:monospace; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+        .control-header { background:#1e293b; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; }
+        .workspace-split { display:flex; flex:1; height:calc(100vh - 55px); }
+        .pane { width:50%; height:100%; display:flex; flex-direction:column; }
+        .editor-pane { border-right:2px solid #334155; }
+        .preview-pane { background:#f8fafc; color:#0f172a; }
+        .pane-title { background:#334155; color:#38bdf8; padding:8px; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; }
+        textarea { width:100%; flex:1; background:#1e293b; color:#38bdf8; border:none; padding:15px; font-size:14px; font-family:'Courier New', monospace; resize:none; outline:none; line-height:1.5; }
+        #live_preview_render { width:100%; flex:1; padding:20px; overflow-y:auto; font-family:sans-serif; background:#ffffff; color:#1e293b; }
+        button { background:#22c55e; color:white; border:none; padding:8px 16px; font-weight:bold; border-radius:4px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+        button:hover { background:#16a34a; }
+    </style>
+</head>
+<body>
+
+    <div class="control-header">
+        <div><span style="color:#94a3b8;">Editing Buffer:</span> <b style="color:#e2e8f0;">{{ filename }}</b></div>
+        <button onclick="commitTargetChanges()"><i class="fa-solid fa-cloud-arrow-up"></i> Save Workspace Changes</button>
+    </div>
+
+    <div class="workspace-split">
+        <!-- LEFT SIDE: INTERACTIVE SOURCE CODE EDITOR -->
+        <div class="pane editor-pane">
+            <div class="pane-title"><i class="fa-solid fa-code"></i> Source Control Buffer Matrix</div>
+            <textarea id="code_textarea" oninput="hotReloadPreview()">{{ content }}</textarea>
+        </div>
+
+        <!-- RIGHT SIDE: REALTIME INTERPRETATION RUN PREVIEW -->
+        <div class="pane preview-pane">
+            <div class="pane-title" style="background:#cbd5e1; color:#334155;"><i class="fa-solid fa-play"></i> Real-time Evaluation Runtime Preview</div>
+            <div id="live_preview_render"></div>
+        </div>
+    </div>
+
+    <script>
+        const filenameKey = "{{ filename }}";
+
+        function hotReloadPreview() {
+            let inputSource = document.getElementById("code_textarea").value;
+            let outputFrame = document.getElementById("live_preview_render");
+            
+            // Clean fallbacks handling both programmatic HTML renders or plain config text view blocks
+            if(inputSource.includes("</html>") || inputSource.includes("</div>") || inputSource.includes("<p>")) {
+                outputFrame.innerHTML = inputSource;
+            } else {
+                outputFrame.innerHTML = `<pre style="white-space: pre-wrap; font-family: monospace; color:#334155;">${escapeHTML(inputSource)}</pre>`;
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function commitTargetChanges() {
+            let codeContent = document.getElementById("code_textarea").value;
+            
+            fetch('/save_code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: filenameKey, code: codeContent })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert("✅ System code edits written to project files.");
+                } else {
+                    alert("⚠️ Write failure: " + data.error);
+                }
+            });
+        }
+
+        // Initialize runtime evaluation stream frame on mount
+        window.onload = hotReloadPreview;
+    </script>
+</body>
+</html> 

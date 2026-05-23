@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socketio.com/4.5.4/socketio.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* RESET */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        /* BODY */
+        body {
+            background: #0f172a;
+            color: white;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #1e293b;
+            position: fixed;
+            padding: 20px;
+            overflow: auto;
+            box-shadow: 5px 0px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            color: #38bdf8;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+            padding: 14px;
+            margin-top: 12px;
+            border-radius: 12px;
+            background: #0f172a;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: #2563eb;
+        }
+
+        /* MAIN */
+        .main {
+            margin-left: 280px;
+            width: 100%;
+            padding: 30px;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        /* BUTTONS */
+        button {
+            background: linear-gradient(to right, #2563eb, #7c3aed);
+            border: none;
+            padding: 12px 20px;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.03);
+        }
+
+        /* CARDS */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            animation: fade 0.8s;
+        }
+
+        .stats-card {
+            text-align: center;
+        }
+
+        .stats-card h1 {
+            font-size: 42px;
+            margin-top: 10px;
+            color: #38bdf8;
+        }
+
+        /* INPUTS */
+        input,
+        textarea {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            margin-top: 15px;
+            background: #0f172a;
+            color: white;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: none;
+        }
+
+        /* TABLE */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        th {
+            background: #334155;
+        }
+
+        td {
+            border-bottom: 1px solid #475569;
+        }
+
+        /* MEETING JOIN LINK BUTTON */
+        .btn-join {
+            background: #22c55e;
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: white;
+            display: inline-block;
+            transition: background 0.2s;
+        }
+        .btn-join:hover {
+            background: #16a34a;
+        }
+
+        /* SECTION */
+        .section {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* PROGRESS BAR */
+        .progress {
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 20px;
+        }
+
+        .progress-bar {
+            background: #2563eb;
+            height: 100%;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* CHART */
+        .chart-container {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+
+        /* COMMUNICATION HUB CUSTOM STYLES */
+        #media-stream-control-rack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        #media-stream-control-rack button {
+            margin-top: 0;
+            flex: 1;
+            min-width: 160px;
+            background: #334155;
+        }
+
+        #chat-scroller-box {
+            background: #0f172a;
+            border: 1px solid #475569 !important;
+            border-radius: 10px;
+            color: white;
+        }
+
+        #chat-scroller-box p {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        #channel-scope {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        /* ANIMATION */
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0px);
+            }
+        }
+
+        /* MOBILE */
+        @media(max-width:768px) {
+            .sidebar {
+                display: none;
+            }
+            .main {
+                margin-left: 0;
+                padding: 15px;
+            }
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>FlowBoard</h2>
+        <a href="#" onclick="showSection('dashboard')">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+        </a>
+        <a href="#" onclick="showSection('register')">
+            <i class="fa-solid fa-folder-plus"></i> Register Project
+        </a>
+        <a href="#" onclick="showSection('projects')">
+            <i class="fa-solid fa-folder"></i> My Projects
+        </a>
+        <!-- NEW: Scheduled Meetings Link -->
+        <a href="#" onclick="showSection('meetings')">
+            <i class="fa-solid fa-calendar-days"></i> Scheduled Meetings
+        </a>
+        <a href="#" onclick="showSection('communication')">
+            <i class="fa-solid fa-comments"></i> Communication Hub
+        </a>
+        <a href="#" onclick="showSection('notifications')">
+            <i class="fa-solid fa-bell"></i> Notifications
+        </a>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <h1>Client Dashboard</h1>
+            <div class="profile">
+                <img src="https://i.pravatar.cc/100" alt="Profile View">
+                <p>Client</p>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="section active">
+            <div class="cards">
+                <div class="card stats-card">
+                    <h2>Total Projects</h2>
+                    <h1>{{ projects|length }}</h1>
+                    <p>Registered Projects</p>
+                </div>
+                <div class="card stats-card">
+                    <h2>Completed</h2>
+                    <h1>{{ projects | selectattr("status","equalto","Completed") | list | length }}</h1>
+                    <p>Finished Projects</p>
+                </div>
+                <div class="card stats-card">
+                    <h2>Pending</h2>
+                    <h1>{{ projects | selectattr("status","equalto","Pending") | list | length }}</h1>
+                    <p>Waiting Approval</p>
+                </div>
+                <div class="card stats-card">
+                    <h2>Assigned</h2>
+                    <h1>{{ projects | selectattr("status","equalto","Assigned") | list | length }}</h1>
+                    <p>Under Development</p>
+                </div>
+            </div>
+
+            <!-- CHART -->
+            <div class="chart-container">
+                <h2>Project Status Analytics</h2>
+                <canvas id="projectChart"></canvas>
+            </div>
+        </div>
+
+        <!-- REGISTER PROJECT -->
+        <div id="register" class="section">
+            <div class="card">
+                <h2>
+                    <i class="fa-solid fa-folder-plus"></i> Register New Project
+                </h2>
+                <form action="/submit_project" method="POST">
+                    <input type="text" name="project" placeholder="Project Name" required>
+                    <textarea name="description" placeholder="Project Description" required></textarea>
+                    <input type="date" name="deadline" required>
+                    <button type="submit">Submit Project</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- PROJECTS -->
+        <div id="projects" class="section">
+            <div class="card">
+                <h2>
+                    <i class="fa-solid fa-folder"></i> Project Status
+                </h2>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Project</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Deadline</th>
+                            <th>Assigned</th>
+                            <th>Progress</th>
+                        </tr>
+                        {% for project in projects %}
+                        <tr>
+                            <td>{{ project.name }}</td>
+                            <td>{{ project.description }}</td>
+                            <td>
+                                {% if project.status == "Completed" %}
+                                <span style="color:#22c55e;">{{ project.status }}</span>
+                                {% elif project.status == "Assigned" %}
+                                <span style="color:#38bdf8;">{{ project.status }}</span>
+                                {% else %}
+                                <span style="color:#facc15;">{{ project.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ project.deadline }}</td>
+                            <td>{{ project.assigned }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width:{{ project.progress }}%;">
+                                        {{ project.progress }}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: SCHEDULED MEETINGS SECTION -->
+        <div id="meetings" class="section">
+            <div class="card">
+                <h2>
+                    <i class="fa-solid fa-calendar-days"></i> Assigned Meetings
+                </h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                               <th>Meeting Topic</th>
+                               <th>Manager</th>
+                               <th>Date</th>
+                               <th>Time</th>
+                               <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if meetings %}
+                                {% for meeting in meetings %}
+                                <tr>
+                                    <td><b>{{ meeting.topic }}</b></td>
+                                    <td>{{ meeting.manager_name }}</td>
+                                    <td>{{ meeting.date }}</td>
+                                    <td>{{ meeting.time }}</td>
+                                    <td>
+                                        <a href="{{ meeting.join_url }}" target="_blank" class="btn-join">
+                                            <i class="fa-solid fa-video"></i> Join Meeting
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #94a3b8; padding: 30px;">
+                                        <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                                        No upcoming meetings scheduled by your manager.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTEGRATED COMMUNICATION HUB -->
+        <div id="communication" class="section">
+            <div class="card" id="workspace-communication-node">
+                <h2><i class="fa-solid fa-comments"></i> Communication Hub (<span id="channel-scope">Loading Channels...</span>)</h2>
+                
+                <div id="media-stream-control-rack">
+                    <button onclick="toggleMedia('audio')"><i class="fa-solid fa-microphone"></i> Toggle Audio Mic</button>
+                    <button onclick="toggleMedia('video')"><i class="fa-solid fa-video"></i> Toggle Camera Feed</button>
+                    <button onclick="toggleMedia('screen')"><i class="fa-solid fa-desktop"></i> Share Desktop Monitor Screen</button>
+                </div>
+                
+                <div id="chat-scroller-box" style="height:250px; overflow-y:scroll; border:1px solid #CCC; margin:10px 0; padding:10px;"></div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="chat-input-field" placeholder="Type a message..." style="margin-top:0;">
+                    <button onclick="transmitMessageData()" style="margin-top:0;">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div id="notifications" class="section">
+            <div class="card">
+                <h2>
+                    <i class="fa-solid fa-bell"></i> Project Notifications
+                </h2>
+                <div id="notificationBox"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* SECTION SWITCH */
+        function showSection(id) {
+            let sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(id).classList.add('active');
+        }
+
+        /* LOGOUT */
+        function logout() {
+            window.location.href = "/login";
+        }
+
+        /* PROJECT CHART */
+        async function loadChart() {
+            try {
+                const response = await fetch('/chart_data');
+                const data = await response.json();
+                const ctx = document.getElementById('projectChart').getContext('2d');
+                
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'Working', 'Pending'],
+                        datasets: [{
+                            data: [
+                                data.completed,
+                                data.working,
+                                data.pending
+                            ],
+                            backgroundColor: ['#22c55e', '#38bdf8', '#f59e0b']
+                        }]
+                    }
+                });
+            } catch (error) {
+                console.error("Error loading chart architecture structural data:", error);
+            }
+        }
+        loadChart();
+
+        /* LIVE NOTIFICATIONS POLLING ENGINE */
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/notifications');
+                const data = await response.json();
+                let html = "";
+                
+                data.forEach(note => {
+                    html += `
+                    <div style="
+                        background:#0f172a;
+                        padding:15px;
+                        margin-top:10px;
+                        border-radius:10px;
+                        border-left:5px solid #38bdf8;
+                    ">
+                        ${note}
+                    </div>
+                    `;
+                });
+                document.getElementById("notificationBox").innerHTML = html;
+            } catch (error) {
+                console.error("Error updates polling network layer connection:", error);
+            }
+        }
+        loadNotifications();
+        setInterval(loadNotifications, 3000);
+
+        /* ================= SOCKET COMMUNICATION PLATFORM CORE ================= */
+        const appUserRole = "{{ session.get('role') }}"; 
+        const currentScopeRoom = (appUserRole === "Client") ? "client_room" : "team_leader_room";
+        const appUserName = "{{ session.get('name') }}";
+
+        document.getElementById("channel-scope").innerText = currentScopeRoom.replace('_', ' ').toUpperCase();
+        const socket = io.connect(window.location.origin);
+
+        // Join specialized functional stream channel
+        socket.emit('join_room', { username: appUserName, room: currentScopeRoom });
+
+        socket.on('status_message', function(data) {
+            let scroller = document.getElementById("chat-scroller-box");
+            scroller.innerHTML += `<p style="color: #94a3b8; font-style: italic;">⚙️ ${data.msg}</p>`;
+            scroller.scrollTop = scroller.scrollHeight;
+        });
+
+        socket.on('receive_message', function(data) {
+            let scroller = document.getElementById("chat-scroller-box");
+            scroller.innerHTML += `<p><span style="color:#38bdf8;">[${data.timestamp}]</span> <b>${data.sender}:</b> ${data.msg}</p>`;
+            scroller.scrollTop = scroller.scrollHeight;
+        });
+
+        socket.on('media_state_altered', function(data) {
+            let scroller = document.getElementById("chat-scroller-box");
+            let trackColor = data.enabled ? "#22c55e" : "#ef4444";
+            scroller.innerHTML += `<p style="color: ${trackColor};">📹 System Event: User ${data.user} toggled ${data.type} to ${data.enabled ? 'ON' : 'OFF'}.</p>`;
+            scroller.scrollTop = scroller.scrollHeight;
+        });
+
+        function transmitMessageData() {
+            let input = document.getElementById("chat-input-field");
+            if (input.value.trim() !== "") {
+                socket.emit('send_chat_message', {
+                    room: currentScopeRoom,
+                    sender: appUserName,
+                    message: input.value.trim()
+                });
+                input.value = "";
+            }
+        }
+
+        let deviceMediaToggleState = { audio: false, video: false, screen: false };
+        function toggleMedia(type) {
+            deviceMediaToggleState[type] = !deviceMediaToggleState[type];
+            socket.emit('toggle_media_track', {
+                room: currentScopeRoom,
+                type: type,
+                enabled: deviceMediaToggleState[type],
+                sender: appUserName
+            });
+        }
+
+        // Catch enter keyboard layout updates for instant sending interface feedback
+        document.getElementById("chat-input-field").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                transmitMessageData();
+            }
+        });
+    </script>
+
+</body>
+</html>

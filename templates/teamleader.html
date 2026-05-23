@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Leader Dashboard & Command Module</title>
+
+    <script src="https://cdn.socketio.com/4.5.4/socketio.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* ================= GLOBAL & NEON THEME ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #0b0f19;
+            color: #f1f5f9;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* ================= SIDEBAR ================= */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            background: #111827;
+            position: fixed;
+            padding: 25px 20px;
+            overflow-auto: auto;
+            border-right: 1px solid #1f2937;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar h2 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 35px;
+            color: #06b6d4;
+            text-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #9ca3af;
+            padding: 14px 18px;
+            margin-top: 8px;
+            border-radius: 12px;
+            background: transparent;
+            font-weight: 500;
+            transition: all 0.25s ease;
+        }
+
+        .sidebar a:hover, .sidebar a.active-nav {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            transform: translateX(4px);
+        }
+
+        /* ================= MAIN INTERFACE ================= */
+        .main {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            padding: 40px;
+            position: relative;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            background: #111827;
+            padding: 20px 30px;
+            border-radius: 16px;
+            border: 1px solid #1f2937;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+
+        .topbar h1 {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+        }
+
+        /* ================= COMPONENT SPECIALS ================= */
+        button {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            border: none;
+            padding: 12px 22px;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(124, 58, 237, 0.4);
+            opacity: 0.95;
+        }
+
+        button:active { transform: translateY(0); }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 13px 16px;
+            margin-top: 8px;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            background: #1e293b;
+            color: white;
+            font-size: 14px;
+            transition: all 0.25s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+            background: #0f172a;
+        }
+
+        /* ================= CARDS & METRIC MATRICES ================= */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: #111827;
+            padding: 28px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #1f2937;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.05);
+        }
+
+        .stats-card {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stats-card .icon-rack {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            font-size: 24px;
+            color: #334155;
+        }
+
+        .stats-card h2 {
+            font-size: 15px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-card h1 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-top: 15px;
+            color: #ffffff;
+        }
+
+        /* Color accents for metrics */
+        .card-total { border-left: 4px solid #3b82f6; }
+        .card-completed { border-left: 4px solid #10b981; }
+        .card-working { border-left: 4px solid #f59e0b; }
+        
+        .card-total h1 { color: #3b82f6; }
+        .card-completed h1 { color: #10b981; }
+        .card-working h1 { color: #f59e0b; }
+
+        .section { display: none; }
+        .active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .grid-matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        /* ================= ANALYTICS CHART GRID ================= */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 4fr 6fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .chart-box-container {
+            background: #111827;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #1f2937;
+            height: 360px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ================= PREMIUM TABLES ================= */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #111827;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #1f2937;
+            color: #38bdf8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            border-bottom: 1px solid #1f2937;
+            color: #cbd5e1;
+        }
+
+        tr:last-child td { border: none; }
+        tr:hover td { background: #1e293b; }
+
+        .badge {
+            background: rgba(56, 189, 248, 0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            display: inline-block;
+        }
+
+        /* ================= PROGRESS ENHANCEMENTS ================= */
+        .progress {
+            background: #1f2937;
+            height: 10px;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 8px;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ================= ADVANCED HUB ROOM SYSTEMS ================= */
+        .media-rack {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .media-rack button {
+            flex: 1;
+            background: #1f2937;
+            color: #cbd5e1;
+            box-shadow: none;
+            border: 1px solid #334155;
+            font-size: 13px;
+        }
+
+        .media-rack button:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .media-rack button.media-active {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .chat-box {
+            background: #111827;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #1f2937;
+        }
+
+        #chat-scroller-box, #chat-scroller {
+            background: #0b0f19;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            height: 280px;
+            overflow-y: auto;
+            border: 1px solid #1f2937;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-msg {
+            background: #1e293b;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border-top-left-radius: 2px;
+            width: fit-content;
+            max-width: 75%;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #f1f5f9;
+        }
+
+        .chat-msg.leader-msg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            align-self: flex-end;
+            border-radius: 14px;
+            border-top-right-radius: 2px;
+        }
+
+        .chat-system-alert {
+            color: #64748b;
+            font-style: italic;
+            font-size: 12px;
+            text-align: center;
+            background: rgba(31, 41, 55, 0.5);
+            padding: 6px;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        /* ================= CODE EDITOR MODULE ================= */
+        .editor-container {
+            background: #05070f;
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid #334155;
+            margin-top: 15px;
+        }
+
+        textarea.code-area {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            background: #05070f;
+            color: #34d399;
+            height: 280px;
+            resize: vertical;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            margin-top: 0;
+            line-height: 1.6;
+        }
+        textarea.code-area:focus { box-shadow: none; }
+
+        /* ================= SYSTEM ALERTS / NOTIFICATIONS ================= */
+        #notifications div {
+            background: #1e293b;
+            padding: 14px 18px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #38bdf8;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ================= MOBILE TOGGLE MENU BAR ================= */
+        .mobile-header {
+            display: none;
+            background: #111827;
+            padding: 15px 20px;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1f2937;
+        }
+        .mobile-header h2 { font-size: 18px; color: #06b6d4; }
+        .menu-btn { background: none; box-shadow: none; padding: 5px; font-size: 20px; color: white; }
+
+        /* ================= RESPONSIVE GRAPH MATRIX ================= */
+        @media(max-width: 1200px) {
+            .analytics-grid { grid-template-columns: 1fr; }
+            .chart-box-container { height: 320px; }
+        }
+
+        @media(max-width: 992px) {
+            .grid-matrix { grid-template-columns: 1fr; }
+        }
+
+        @media(max-width: 768px) {
+            .mobile-header { display: flex; }
+            .sidebar { transform: translateX(-100%); height: 100vh; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; width: 100%; padding: 20px; }
+            .topbar { flex-direction: column; gap: 20px; text-align: center; }
+            .profile { width: 100%; justify-content: center; flex-wrap: wrap; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mobile-header">
+        <h2>FlowBoard</h2>
+        <button class="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    </div>
+
+    <div class="sidebar" id="sidebarNode">
+        <h2><i class="fa-solid fa-cubes-stacked"></i> FlowBoard</h2>
+        <a href="#" onclick="showSection('dashboard', this)" class="active-nav"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+        <a href="#" onclick="showSection('tasks', this)"><i class="fa-solid fa-list-check"></i> Tasks Matrix</a>
+        <a href="#" onclick="showSection('split', this)"><i class="fa-solid fa-code-branch"></i> Split Tasks Workspace</a>
+        <a href="#" onclick="showSection('metrics', this)"><i class="fa-solid fa-pen-to-square"></i> Update Status</a>
+        <a href="#" onclick="showSection('chatsection', this)"><i class="fa-solid fa-comments"></i> Team Room Chat</a>
+    </div>
+
+    <div class="main">
+
+        <div class="topbar">
+            <div>
+                <h1>Team Leader Dashboard</h1>
+                <p style="margin-top: 5px; color: #64748b; font-size: 14px;">Logged In Security Node: <span style="color:#cbd5e1; font-weight:600;">{{ leader_email if leader_email else 'leader@domain.com' }}</span></p>
+            </div>
+            <div class="profile">
+                <a id="header-meeting-btn" href="#" target="_blank" style="display: none; text-decoration: none;">
+                    <button style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 12px rgba(16,185,129,0.3); margin-top: 0;">
+                        <i class="fa-solid fa-video"></i> Join Meeting
+                    </button>
+                </a>
+                <img src="https://i.pravatar.cc/100?img=33" alt="Avatar">
+                <p style="font-weight: 600; color:#e2e8f0;">{{ session.get('name') or 'Team Leader Profile' }}</p>
+                <button onclick="logout()" style="background: #1f2937; border: 1px solid #334155; box-shadow: none; padding: 8px 15px; font-size: 13px;">Logout</button>
+            </div>
+        </div>
+
+        <div id="dashboard" class="section active">
+            <div class="cards" style="margin-bottom: 25px;">
+                <div class="card stats-card card-total">
+                    <i class="fa-solid fa-layer-group icon-rack"></i>
+                    <h2>Total Tasks</h2>
+                    <h1 id="count-total">{{ tasks|length if tasks else '3' }}</h1>
+                </div>
+                <div class="card stats-card card-completed">
+                    <i class="fa-solid fa-circle-check icon-rack"></i>
+                    <h2>Completed</h2>
+                    <h1 id="count-completed">{{ tasks|selectattr("status","equalto","Completed")|list|length if tasks else '1' }}</h1>
+                </div>
+                <div class="card stats-card card-working">
+                    <i class="fa-solid fa-spinner icon-rack"></i>
+                    <h2>Working</h2>
+                    <h1 id="count-working">{{ tasks|selectattr("status","equalto","Working")|list|length if tasks else '2' }}</h1>
+                </div>
+            </div>
+
+            <div class="analytics-grid">
+                <div class="chart-box-container">
+                    <h3 style="color:#38bdf8; font-size:15px; margin-bottom:15px;"><i class="fa-solid fa-pie-chart"></i> Task Metric Allocation</h3>
+                    <div style="height: calc(100% - 40px); display: flex; justify-content: center; align-items: center; position: relative;">
+                        <canvas id="taskPieChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-box-container">
+                    <h3 style="color:#a855f7; font-size:15px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar"></i> Architecture Framework Status</h3>
+                    <div style="height: calc(100% - 40px); position: relative;">
+                        <canvas id="projectProgressBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="font-size:18px;"><i class="fa-solid fa-folder-tree" style="color:#3b82f6; margin-right:8px;"></i> Assigned Projects Framework</h2>
+                <div class="table-container">
+                    <table id="projects-framework-table">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th style="width: 25%;">Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if projects %}
+                                {% for project in projects %}
+                                <tr>
+                                    <td><b>{{ project.name }}</b></td>
+                                    <td>{{ project.description }}</td>
+                                    <td><span class="badge" style="border-color: #10b981; color:#10b981; background:rgba(16,185,129,0.1);">{{ project.status }}</span></td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width:{{ project.progress }}%;"></div>
+                                        </div>
+                                        <span style="font-size:11px; margin-top:4px; display:block; color:#94a3b8;">{{ project.progress }}% Complete</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td><b>Alpha Core Platform</b></td>
+                                    <td>Core infrastructure build deployment</td>
+                                    <td><span class="badge" style="border-color: #3b82f6; color:#3b82f6; background:rgba(59,130,246,0.1);">In Progress</span></td>
+                                    <td>
+                                        <div class="progress"><div class="progress-bar" style="width:65%;"></div></div>
+                                        <span style="font-size:11px; margin-top:4px; display:block; color:#94a3b8;">65% Complete</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><b>Beta Vault Encryption</b></td>
+                                    <td>Security compliance token layers</td>
+                                    <td><span class="badge" style="border-color: #f59e0b; color:#f59e0b; background:rgba(245,158,11,0.1);">On Hold</span></td>
+                                    <td>
+                                        <div class="progress"><div class="progress-bar" style="width:30%; background: linear-gradient(90deg, #f59e0b, #ef4444);"></div></div>
+                                        <span style="font-size:11px; margin-top:4px; display:block; color:#94a3b8;">30% Complete</span>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tasks" class="section">
+            <div class="card">
+                <h2><i class="fa-solid fa-list-check" style="color:#10b981; margin-right:8px;"></i> Assigned Sub-Tasks Matrix</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Module</th>
+                                <th>Assigned To</th>
+                                <th>Status</th>
+                                <th style="width: 25%;">Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if tasks %}
+                                {% for task in tasks %}
+                                <tr>
+                                    <td>{{ task.project }}</td>
+                                    <td><b>{{ task.module }}</b></td>
+                                    <td><code style="color:#60a5fa;">{{ task.assigned_to }}</code></td>
+                                    <td>{{ task.status }}</td>
+                                    <td>
+                                        <div class="progress"><div class="progress-bar" style="width:{{ task.progress }}%;"></div></div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td>Alpha Core Platform</td>
+                                    <td><b>Backend API Engine</b></td>
+                                    <td><code style="color:#60a5fa;">eng_1@domain.com</code></td>
+                                    <td><span style="color:#f59e0b;">● Working</span></td>
+                                    <td><div class="progress"><div class="progress-bar" style="width:50%;"></div></div></td>
+                                </tr>
+                                <tr>
+                                    <td>Beta Vault Encryption</td>
+                                    <td><b>Security Access Controls</b></td>
+                                    <td><code style="color:#60a5fa;">eng_2@domain.com</code></td>
+                                    <td><span style="color:#10b981;">● Completed</span></td>
+                                    <td><div class="progress"><div class="progress-bar" style="width:100%; background:#10b981;"></div></div></td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="split" class="section">
+            <div class="grid-matrix">
+                <div class="card">
+                    <h2><i class="fa-solid fa-scissors" style="color:#a855f7;"></i> Split Architecture Work Scope</h2>
+                    <form action="/split_task" method="POST">
+                        <label>Select Target Structural Project:</label>
+                        <select name="project" required>
+                            {% if projects %}
+                                {% for p in projects %}
+                                    <option value="{{ p.id }}">{{ p.name }} ({{ p.id }})</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PRJ-01">Alpha Core Platform (PRJ-01)</option>
+                                <option value="PRJ-02">Beta Vault Encryption (PRJ-02)</option>
+                            {% endif %}
+                        </select>
+
+                        <label>Structural Partition Module Target:</label>
+                        <select name="module" required>
+                            <option value="Backend Engine">Backend API Logic / DB Matrix</option>
+                            <option value="Frontend UI">Frontend Layout UI / Component Framework</option>
+                            <option value="Security System">Security Access Control Gateway</option>
+                        </select>
+
+                        <label>Delegate Target Team Member Node:</label>
+                        <select name="assigned_to" required>
+                            {% if team_members %}
+                                {% for m in team_members %}
+                                    <option value="{{ m.email }}">{{ m.name }} ({{ m.email }})</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="eng_1@domain.com">Alex Engineer (eng_1@domain.com)</option>
+                                <option value="eng_2@domain.com">Blake Dev (eng_2@domain.com)</option>
+                            {% endif %}
+                        </select>
+                        
+                        <input type="hidden" name="team_leader" value="{{ leader_email }}">
+                        <button type="submit" style="margin-top:20px; width:100%;"><i class="fa-solid fa-network-wired"></i> Commit Component Delegation</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fa-solid fa-code-branch" style="color:#06b6d4;"></i> Assigned Architecture Track</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Module Track</th>
+                                    <th>Assigned Engineer</th>
+                                    <th>Workspace Interface</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tasks %}
+                                    {% for t in tasks %}
+                                    <tr>
+                                        <td><b>{{ t.module }}</b><br><small style="color:#64748b;">Proj: {{ t.project }}</small></td>
+                                        <td><span class="badge">{{ t.assigned_to }}</span></td>
+                                        <td>
+                                            <button onclick="openReviewWorkspace('{{ t.filename }}')" style="padding: 6px 12px; font-size: 12px; background:#0ea5e9; margin-top:0; box-shadow:none;">
+                                                <i class="fa-solid fa-folder-open"></i> Inspect Code
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td><b>Backend API Engine</b><br><small style="color:#64748b;">Proj: Alpha Core</small></td>
+                                        <td><span class="badge">eng_1@domain.com</span></td>
+                                        <td>
+                                            <button onclick="openReviewWorkspace('api_engine.py')" style="padding: 6px 12px; font-size: 12px; background:#0ea5e9; margin-top:0; box-shadow:none;">
+                                                <i class="fa-solid fa-folder-open"></i> Inspect Code
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="code-review-rack" class="card" style="margin-top: 25px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h2><i class="fa-solid fa-terminal" style="color:#34d399;"></i> Interactive Review: <span id="active-filename-display" style="color: #60a5fa;">None</span></h2>
+                    <button onclick="saveActiveReviewCode()" style="background:#10b981; box-shadow: 0 4px 12px rgba(16,185,129,0.2); margin-top:0;"><i class="fa-solid fa-floppy-disk"></i> Overwrite Save</button>
+                </div>
+                <div class="editor-container">
+                    <textarea id="leader-editor-textarea" class="code-area" spellcheck="false"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="metrics" class="section">
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                <h2><i class="fa-solid fa-sliders" style="color:#3b82f6; margin-right:8px;"></i> Modify Project Metrics</h2>
+                <form action="/update_project_status" method="POST">
+                    <label>Target Project Framework:</label>
+                    <select name="project_name" required>
+                        {% if projects %}
+                            {% for p in projects %}
+                                <option value="{{ p.name }}">{{ p.name }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="Alpha Core Platform">Alpha Core Platform</option>
+                            <option value="Beta Vault Encryption">Beta Vault Encryption</option>
+                        {% endif %}
+                    </select>
+
+                    <label>Pipeline Lifecycle Status:</label>
+                    <select name="status">
+                        <option value="In Progress">In Progress</option>
+                        <option value="On Hold">On Hold</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+
+                    <label>Progress Value Ratio (0-100%):</label>
+                    <input type="number" name="progress" min="0" max="100" placeholder="Example: 45" required>
+
+                    <button type="submit" style="width: 100%; margin-top: 25px;">Publish Matrix Update</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="chatsection" class="section">
+            <div class="grid-matrix" style="margin-bottom: 25px;">
+                <div class="card" style="margin-bottom: 0;">
+                    <h2><i class="fa-solid fa-calendar-plus" style="color:#10b981;"></i> Schedule Sync Session</h2>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
+                        <div>
+                            <label style="margin-top:0;">Session Agenda Target:</label>
+                            <input type="text" id="meet-topic" placeholder="e.g., Sprint Architecture Alignment Sync">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1;">
+                                <label style="margin-top:0;">Timeline Date:</label>
+                                <input type="datetime-local" id="meet-time">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="margin-top:0;">Project Scope Target:</label>
+                                <select id="meet-project" style="margin-top:8px;">
+                                    <option value="Global Team Scope">Global Team Scope</option>
+                                    {% if projects %}
+                                        {% for p in projects %}
+                                            <option value="{{ p.name }}">{{ p.name }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="margin-top:0;">Platform Sync Room URL:</label>
+                            <input type="url" id="meet-url" placeholder="Paste link (Zoom, Meet, Teams)...">
+                        </div>
+                        <button onclick="commitMeetingSchedule()" style="width: 100%; margin-top: 15px;">
+                            <i class="fa-solid fa-calendar-check"></i> Publish Agenda to Timeline
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h2><i class="fa-solid fa-video" style="color:#0ea5e9;"></i> Instant Room Broadcast Hook</h2>
+                        <p style="margin-top: 8px; color: #94a3b8; font-size: 14px; line-height:1.5;">Instantly mount an active meeting button panel onto headers globally across all real-time client frames.</p>
+                        <input type="url" id="meeting-url-input" placeholder="Paste global broadcast meeting URL..." style="margin-top: 15px;">
+                        <button onclick="updateMeetingLink()" style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); margin-top: 15px; width: 100%;">
+                            <i class="fa-solid fa-link"></i> Synchronize Instant Room
+                        </button>
+                    </div>
+                    <div style="border-top: 1px solid #1f2937; margin-top: 15px; padding-top: 15px;">
+                        <p id="current-meeting-status" style="font-size: 13px; color: #64748b; font-style: italic;"><i class="fa-solid fa-circle-notch"></i> No active broadcast hooked.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 25px;">
+                <h2><i class="fa-solid fa-clock" style="color:#f59e0b;"></i> Active Meeting Agenda Pipeline</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Agenda/Topic Target</th>
+                                <th>Project Domain</th>
+                                <th>Scheduled Timeline</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="meeting-schedule-tbody">
+                            <tr id="empty-schedule-row">
+                                <td colspan="4" style="text-align: center; color: #64748b; font-style: italic; padding: 30px;">No operational group synchronization pipelines mapped yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="chat-box">
+                <h2><i class="fa-solid fa-comments" style="color:#3b82f6; margin-right:8px;"></i> Live Team Channel Chat</h2>
+                
+                <div class="media-rack">
+                    <button id="btn-mic" onclick="toggleMedia('audio')"><i class="fa-solid fa-microphone"></i> Mic: Off</button>
+                    <button id="btn-cam" onclick="toggleMedia('video')"><i class="fa-solid fa-video"></i> Video: Off</button>
+                    <button id="btn-screen" onclick="toggleMedia('screen')"><i class="fa-solid fa-desktop"></i> Screen Share</button>
+                </div>
+
+                <div id="chat-scroller-box">
+                    <div class="chat-system-alert">System Terminal Encrypted Channel Linked Successfully.</div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="msg" placeholder="Type a channel message..." style="margin-top: 0;">
+                    <button onclick="sendMessage()" style="margin-top: 0; padding: 0 30px;">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 25px;">
+            <h2><i class="fa-solid fa-bell" style="color:#ef4444; margin-right:8px;"></i> Live Operational Notifications</h2>
+            <div id="notifications">
+                <div><i class="fa-solid fa-info" style="color:#38bdf8;"></i> Core security node online. Flow Board monitoring telemetry activated.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Server variables with secure testing data fallbacks
+        const leaderEmail = "{{ leader_email }}" || "leader@domain.com";
+        const appUserName = "{{ session.get('name') or name or 'Team Leader' }}" || "Team Leader";
+        const currentScopeRoom = "team_leader_room"; 
+        
+        const privateRoomToken = "room_" + btoa(leaderEmail).replace(/=/g, "");
+        let deviceMediaToggleState = { audio: false, video: false, screen: false };
+        let loadedTargetFile = "";
+
+        // Raw Array Fallback Injectors
+        const taskDataRaw = [];
+        const projectDataRaw = [];
+
+        // Parse Logic Hooks for Deployment Environments
+        {% if tasks %}
+            {% for task in tasks %}
+                taskDataRaw.push({ status: "{{ task.status }}" });
+            {% endfor %}
+        {% endif %}
+
+        {% if projects %}
+            {% for project in projects %}
+                projectDataRaw.push({ name: "{{ project.name }}", progress: parseInt("{{ project.progress }}") || 0 });
+            {% endfor %}
+        {% endif %}
+
+        // Load Default Layout Testing Fallbacks if array frames are raw empty
+        if (taskDataRaw.length === 0) {
+            taskDataRaw.push({ status: "Working" }, { status: "Completed" }, { status: "Working" });
+        }
+        if (projectDataRaw.length === 0) {
+            projectDataRaw.push({ name: "Alpha Core Platform", progress: 65 }, { name: "Beta Vault Encryption", progress: 30 });
+        }
+
+        // NAVIGATION COMPONENT CONTROL PANEL
+        function showSection(sectionId, element) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active-nav'));
+            if(element) {
+                element.classList.add('active-nav');
+            }
+            // Auto close mobile toggle menus on layout select
+            document.getElementById('sidebarNode').classList.remove('open');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebarNode').classList.toggle('open');
+        }
+
+        // LIVE HARDWARE TOGGLE SIMULATOR
+        function toggleMedia(type) {
+            deviceMediaToggleState[type] = !deviceMediaToggleState[type];
+            const btn = document.getElementById(`btn-${type === 'audio' ? 'mic' : type === 'video' ? 'cam' : 'screen'}`);
+            
+            if(deviceMediaToggleState[type]) {
+                btn.classList.add('media-active');
+                btn.innerHTML = type === 'audio' ? '<i class="fa-solid fa-microphone"></i> Mic: LIVE' : type === 'video' ? '<i class="fa-solid fa-video"></i> Video: LIVE' : '<i class="fa-solid fa-desktop"></i> Sharing';
+                pushNotification(`System mounted localized client hardware: ${type}`);
+            } else {
+                btn.classList.remove('media-active');
+                btn.innerHTML = type === 'audio' ? '<i class="fa-solid fa-microphone"></i> Mic: Off' : type === 'video' ? '<i class="fa-solid fa-video"></i> Video: Off' : '<i class="fa-solid fa-desktop"></i> Screen Share';
+            }
+        }
+
+        // LIVE CORE ANALYTICS ENGINE CONFIGURATION
+        document.addEventListener("DOMContentLoaded", function() {
+            // Task status distribution matrix
+            const statusCounts = { "Completed": 0, "Working": 0, "Pending": 0 };
+            taskDataRaw.forEach(t => {
+                if (statusCounts[t.status] !== undefined) statusCounts[t.status]++;
+                else statusCounts["Pending"]++; 
+            });
+
+            // 1. Task Pie Chart Build Configuration
+            const ctxPie = document.getElementById('taskPieChart').getContext('2d');
+            new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#10b981', '#f59e0b', '#3b82f6'],
+                        borderWidth: 2,
+                        borderColor: '#111827'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12 } } }
+                    }
+                }
+            });
+
+            // 2. Multi-Project Horizontal Bar Architecture Chart Configuration
+            const projectLabels = projectDataRaw.map(p => p.name);
+            const projectProgressData = projectDataRaw.map(p => p.progress);
+
+            const ctxBar = document.getElementById('projectProgressBarChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: projectLabels,
+                    datasets: [{
+                        label: 'Progress Mapping %',
+                        data: projectProgressData,
+                        backgroundColor: 'rgba(168, 85, 247, 0.65)',
+                        borderColor: '#a855f7',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { max: 100, grid: { color: '#1f2937' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { display: false }, ticks: { color: '#cbd5e1' } }
+                    }
+                }
+            });
+        });
+
+        // SYSTEM COMMUNICATION & WORKSPACE SIMULATORS
+        function openReviewWorkspace(filename) {
+            loadedTargetFile = filename;
+            document.getElementById('code-review-rack').style.display = 'block';
+            document.getElementById('active-filename-display').innerText = filename;
+            document.getElementById('leader-editor-textarea').value = `// Live Dynamic Environment Hook \n// Target Framework Element Ref: ${filename}\n\nfunction initializeMatrix() {\n    console.log("Analyzing telemetry framework nodes...");\n}`;
+            document.getElementById('code-review-rack').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function saveActiveReviewCode() {
+            pushNotification(`Overwritten data matrix committed into target storage ref: ${loadedTargetFile}`);
+            alert('Live code data configuration overwrite targeted successfully!');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('msg');
+            if(!input.value.trim()) return;
+            
+            const scroller = document.getElementById('chat-scroller-box');
+            const msgNode = document.createElement('div');
+            msgNode.className = "chat-msg leader-msg";
+            msgNode.innerText = input.value;
+            scroller.appendChild(msgNode);
+            
+            input.value = "";
+            scroller.scrollTop = scroller.scrollHeight;
+        }
+
+        function commitMeetingSchedule() {
+            const topic = document.getElementById('meet-topic').value;
+            const time = document.getElementById('meet-time').value;
+            const proj = document.getElementById('meet-project').value;
+            const url = document.getElementById('meet-url').value;
+
+            if(!topic || !time) {
+                alert('Fill remaining core time matrices!');
+                return;
+            }
+
+            const emptyRow = document.getElementById('empty-schedule-row');
+            if(emptyRow) emptyRow.remove();
+
+            const tbody = document.getElementById('meeting-schedule-tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `<td><b>${topic}</b></td><td>${proj}</td><td>${time}</td><td><a href="${url ? url : '#'}" target="_blank"><button style="padding:6px 12px; font-size:12px; margin:0;">Launch Sync</button></a></td>`;
+            tbody.appendChild(newRow);
+            pushNotification(`Scheduled synchronous timeline interface: ${topic}`);
+        }
+
+        function updateMeetingLink() {
+            const url = document.getElementById('meeting-url-input').value;
+            if(!url) return;
+            const btnFrame = document.getElementById('header-meeting-btn');
+            btnFrame.href = url;
+            btnFrame.style.display = 'inline-block';
+            document.getElementById('current-meeting-status').innerHTML = `<span style="color:#10b981;">● Streaming Room Operational Link:</span> <small>${url}</small>`;
+            pushNotification("Synchronized active team structural session meeting frame broadcast globally.");
+        }
+
+        function pushNotification(msg) {
+            const container = document.getElementById('notifications');
+            const note = document.createElement('div');
+            note.innerHTML = `<i class="fa-solid fa-circle-nodes" style="color:#0ea5e9;"></i> ${msg}`;
+            container.insertBefore(note, container.firstChild);
+        }
+
+        function logout() {
+            window.location.href = "/logout";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<label for="project_ref">Project Reference ID</label>
+<input 
+    type="text" 
+    id="project_ref" 
+    name="project_ref" 
+    value="PROJ-001"
+    readonly
+>
+
+<label for="project_title">Project Title</label>
+<input 
+    type="text" 
+    id="project_title" 
+    name="project_title"
+    value="Frontend UI Component Partition"
+>
+<label for="project_info">Project Info</label>
+<input 
+    type="text" 
+    id="project_info" 
+    name="project_info"
+    value="Frontend UI Component Partition - PROJ-001"
+    readonly
+>

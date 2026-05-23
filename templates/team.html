@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Team Dashboard</title>
+
+<link rel="stylesheet"
+href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+
+<h1>Team Dashboard</h1>
+
+<div class="card">
+
+    <h2>Assigned Tasks</h2>
+
+    <ul>
+
+        <li>Frontend Design</li>
+        <li>Backend API</li>
+        <li>Testing</li>
+
+    </ul>
+
+</div>
+
+<div class="card">
+
+    <h2>Meeting</h2>
+
+    <button onclick="joinMeeting()">
+        Join Team Meeting
+    </button>
+
+</div>
+
+<script>
+
+function joinMeeting(){
+
+    window.open("{{ meeting_link }}");
+}
+
+</script>
+
+</body>
+</html>
