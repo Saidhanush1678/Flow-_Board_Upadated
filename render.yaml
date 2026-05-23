@@ -3,10 +3,9 @@ services:
     name: flowboard-portal
     env: python
     buildCommand: pip install -r requirements.txt
-    # We call gunicorn using the gevent worker class to run our SocketIO instance smoothly
     startCommand: gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 --bind 0.0.0.0:$PORT app:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.10.12
+        value: 3.11.10  # <-- Changed from 3.14.x to a highly stable environment
       - key: SECRET_KEY
         generateValue: true
