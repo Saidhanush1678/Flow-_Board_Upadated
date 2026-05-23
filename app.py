@@ -17,8 +17,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(24))
 app.config['SECRET_KEY'] = app.secret_key
 
-# Changed async_mode to "gevent" for robust production WebSocket worker pooling
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
+# Modified: Swapped gevent framework layer to bulletproof native threads pooling
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 EXCEL_DB = "flowboard_database.xlsx"
 PROJECT_FOLDER = "team_codes"
@@ -556,8 +556,8 @@ def handle_webrtc_pass_through(data):
     room = data.get('room')
     emit('webrtc_response', data, to=room, include_self=False)
 
-# Changed execution loop to catch Render's system port assignments seamlessly
+# Modified: Unified system initialization handling thread parameters cleanly
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5050))
-    print(f"🚀 Unified Flowboard Media Engine Infrastructure Active on Port: {port}")
+    print(f"🚀 Unified Flowboard Threading Infrastructure Active on Port: {port}")
     socketio.run(app, host="0.0.0.0", port=port, use_reloader=False)
