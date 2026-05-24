@@ -1,6 +1,8 @@
 import os
 import secrets
 import random
+import asyncio
+import threading
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -9,15 +11,19 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 
+# Telegram Bot Imports
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+# Added: Explicit configuration layer to alter networking timeouts
+from telegram.request import HTTPXRequest
+
 # =====================================================
 # SYSTEM CONFIGURATION & ENGINES
 # =====================================================
 app = Flask(__name__)
-# Render instances can restart; using a persistent environment fallback keeps sessions alive between restarts
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(24))
 app.config['SECRET_KEY'] = app.secret_key
 
-# Modified: Swapped gevent framework layer to bulletproof native threads pooling
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 EXCEL_DB = "flowboard_database.xlsx"
@@ -30,6 +36,10 @@ attendance = []
 notifications = []
 MEETING_LINK = "https://meet.google.com/wge-aofy-frc"
 active_user_dashboards = {} 
+
+# Telegram Token Config
+TELEGRAM_TOKEN = "8607547916:AAEIw7oFBRFLsGUZUXzBEs0sTnpo9RAbe5w"
+TELEGRAM_SUBSCRIBERS = set()
 
 # =====================================================
 # UNIFIED EXCEL STORAGE ENGINE
@@ -86,6 +96,142 @@ def write_sheet(sheet_name, data_list):
         pd.DataFrame(data_list).to_excel(writer, sheet_name=sheet_name, index=False)
 
 init_excel_database()
+
+# =====================================================
+# TELEGRAM BOT ENGINE INTERFACE (ASYNC POOL LAYER)
+# =====================================================
+async def send_telegram_broadcast(message_text: str):
+    if not TELEGRAM_SUBSCRIBERS:
+        return
+    # Use adjusted timeout parameters here as well to prevent runtime broadcast drops
+    custom_request = HTTPXRequest(connect_timeout=30.0, read_timeout=30.0)
+    bot_app = Application.builder().token(TELEGRAM_TOKEN).request(custom_request).build()
+    async with bot_app:
+        for chat_id in list(TELEGRAM_SUBSCRIBERS):
+            try:
+                await bot_app.bot.send_message(chat_id=chat_id, text=message_text, parse_mode="Markdown")
+            except Exception as e:
+                print(f"Failed broadcasting message to {chat_id}: {e}")
+
+def trigger_telegram_alert(message_text: str):
+    try:
+        loop = asyncio.new_event_loop()
+        threading.Thread(target=lambda: loop.run_until_complete(send_telegram_broadcast(message_text))).start()
+    except Exception as e:
+        print(f"Error executing sub-thread telegram notification callback: {e}")
+
+async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    TELEGRAM_SUBSCRIBERS.add(chat_id)
+    welcome_text = (
+        "📊 *Welcome to FlowBoard AI Automated Channel Node!*\n\n"
+        "Your chat connection has been securely registered to intercept system alert telemetry. "
+        "Interact with me using these explicit keywords or instructions:\n"
+        "• *projects* - Print complete system tracking pipeline matrix\n"
+        "• *deadlines* - Check immediate milestone targets and progress metrics\n"
+        "• *team* - Audit structural layout nodes (Leaders & Members)"
+    )
+    await update.message.reply_text(welcome_text, parse_mode="Markdown")
+
+async def telegram_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_query = update.message.text.strip().lower()
+    chat_id = update.effective_chat.id
+    TELEGRAM_SUBSCRIBERS.add(chat_id)
+    
+    if "project" in user_query:
+        projects = read_sheet('Projects')
+        if not projects:
+            await update.message.reply_text("📁 Flowboard structural matrix holds 0 tracking records currently.")
+            return
+        
+        response_text = "📁 *Current Matrix Project Node Entries:*\n\n"
+        for idx, p in enumerate(projects, 1):
+            response_text += (
+                f"*{idx}. [{p.get('id')}] {p.get('name')}*\n"
+                f"• Desc: {p.get('description')}\n"
+                f"• Status: `{p.get('status')}` | Progress: {p.get('progress')}%\n"
+                f"• Target Lead Node: {p.get('assigned_leader_email') or 'Unassigned'}\n\n"
+            )
+        await update.message.reply_text(response_text, parse_mode="Markdown")
+
+    elif "deadline" in user_query or "alert" in user_query:
+        projects = read_sheet('Projects')
+        if not projects:
+            await update.message.reply_text("⏳ No deadline scheduling targets are configured inside runtime database.")
+            return
+        
+        response_text = "⏳ *Milestone Targets & Deadline Metrics Matrix:*\n\n"
+        for idx, p in enumerate(projects, 1):
+            response_text += (
+                f"*{idx}. Project:* {p.get('name')} (`{p.get('id')}`)\n"
+                f"• *Milestone Limit:* {p.get('deadline')}\n"
+                f"• *Completed Track:* {p.get('progress')}%\n"
+                f"• *Status Level:* `{p.get('status')}`\n\n"
+            )
+        await update.message.reply_text(response_text, parse_mode="Markdown")
+
+    elif "team" in user_query or "member" in user_query or "leader" in user_query:
+        users = read_sheet('SystemUsers')
+        if not users:
+            await update.message.reply_text("👥 FlowBoard human resource workspace directory tracking is empty.")
+            return
+        
+        leaders = [u for u in users if u.get('role') == 'Team Leader']
+        members = [u for u in users if u.get('role') == 'Team Member']
+        managers = [u for u in users if u.get('role') == 'Manager']
+        
+        response_text = "👥 *FlowBoard Operational HR Registry Structure:*\n\n"
+        
+        response_text += "*💼 Corporate Management Hub Nodes:*\n"
+        for m in managers:
+            response_text += f"• {m.get('name')} - {m.get('email')}\n"
+            
+        response_text += "\n*⚡ Assigned Functional Team Leaders:*\n"
+        for l in leaders:
+            response_text += f"• {l.get('name')} - {l.get('email')}\n"
+            
+        response_text += "\n*🛠 Working Team Members Network:*\n"
+        for mb in members:
+            response_text += f"• {mb.get('name')} - {mb.get('email')}\n"
+            
+        await update.message.reply_text(response_text, parse_mode="Markdown")
+        
+    else:
+        await update.message.reply_text(
+            "⚠️ *Instruction Scope Mismatch.*\n"
+            "Please provide an explicit database matching phrase:\n"
+            "👉 Send *'projects'*, *'deadlines'*, or *'team'* to execute query logic hooks.", 
+            parse_mode="Markdown"
+        )
+
+# =====================================================
+# MODIFIED: RESOLVED NETWORKING READTIMEOUT HANDLER
+# =====================================================
+def run_telegram_polling_thread():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    
+    # Generate high-tolerance networking request layer (Extended parameters to 60s boundaries)
+    custom_request = HTTPXRequest(
+        connect_timeout=30.0, 
+        read_timeout=60.0, 
+        write_timeout=30.0, 
+        pool_timeout=30.0
+    )
+    
+    # Inject the persistent configuration client wrapper back into engine assembly
+    application = Application.builder().token(TELEGRAM_TOKEN).request(custom_request).build()
+    
+    application.add_handler(CommandHandler("start", start_cmd))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, telegram_message_handler))
+    
+    print("🤖 Flowboard Telegram Bot Core Polling Thread Initialized Successfully (High-Tolerance Mode).")
+    
+    # Added long poll parameters directly to handle temporary upstream drops gracefully
+    application.run_polling(
+        drop_pending_updates=True,
+        timeout=50,
+        bootstrap_retries=-1 # Keep retrying indefinitely if connection drops during start phase
+    )
 
 # =====================================================
 # UNIVERSAL SETTINGS ROUTE
@@ -145,7 +291,6 @@ def login():
             session["role"] = u["role"]
             session["name"] = u["name"]
 
-            # Track attendance entry manually upon successful profile validation
             attendance.append({"name": u["name"], "time": datetime.now().strftime("%H:%M:%S")})
 
             if u["role"] == "Manager":
@@ -238,6 +383,9 @@ def assign_project_leader():
     current_users = read_sheet('SystemUsers')
     leader_name = next((u["name"] for u in current_users if u["email"].lower() == leader_email.lower()), leader_email)
 
+    target_project_name = "Unknown Project"
+    target_deadline = "Not Set"
+    
     for p in projects:
         if str(p["id"]) == project_id or str(p["name"]) == request.form.get('project_name', '').strip():
             p["assigned_leader_email"] = leader_email
@@ -246,11 +394,21 @@ def assign_project_leader():
                 p["progress"] = 15
             else:
                 p["status"] = "Assigned"
+            target_project_name = p["name"]
+            target_deadline = p["deadline"]
             break
 
     write_sheet('Projects', projects)
     notifications.append(f"Project Code [{project_id}] explicitly delegated to: {leader_name}.")
     
+    trigger_telegram_alert(
+        f"📢 *Project Assignment Notification*\n\n"
+        f"• *Project:* {target_project_name} (`{project_id}`)\n"
+        f"• *Assigned Leader:* {leader_name} ({leader_email})\n"
+        f"• *Target Deadline Limit:* {target_deadline}\n"
+        f"• *Status Matrix:* In Progress (15%)"
+    )
+
     socketio.emit('live_notification', {
         "to": leader_email,
         "message": f"Administrative Management Framework has delegated access scope control of structural path: {project_id}"
@@ -363,14 +521,28 @@ def update_project_status():
     new_progress = int(request.form['progress'].strip())
 
     projects = read_sheet('Projects')
+    target_project_title = p_name
+    target_deadline = "Continuous"
+    
     for p in projects:
         if (str(p["id"]) == proj_id or str(p["name"]) == p_name) and (str(p["assigned_leader_email"]).lower() == session.get('user', '').lower() or session.get('role') == 'Manager'):
             p["status"] = new_status
             p["progress"] = new_progress
+            target_project_title = p["name"]
+            target_deadline = p["deadline"]
             break
 
     write_sheet('Projects', projects)
     notifications.append(f"Project updated: {new_status} ({new_progress}%).")
+    
+    trigger_telegram_alert(
+        f"⚡ *Project Operational Status Altered Alert*\n\n"
+        f"• *Project:* {target_project_title}\n"
+        f"• *New Status State:* `{new_status}`\n"
+        f"• *Track Progress Summary:* {new_progress}%\n"
+        f"• *Milestone Timeline Deadline:* {target_deadline}"
+    )
+    
     return redirect(url_for('teamleader'))
 
 @app.route('/split_task', methods=['POST'])
@@ -434,6 +606,14 @@ def update_task(task_index):
             if counter == task_index:
                 task['status'] = request.form.get('status')
                 task['progress'] = int(request.form.get('progress'))
+                
+                trigger_telegram_alert(
+                    f"🔧 *SubTask Matrix Partition Update*\n\n"
+                    f"• *Project Envelope:* `{task.get('project')}`\n"
+                    f"• *Module Component:* {task.get('module')}\n"
+                    f"• *Assigned Actor:* {task.get('assigned_to')}\n"
+                    f"• *Partition Progress Status:* `{task['status']}` ({task['progress']}%)"
+                )
                 break
             counter += 1
             
@@ -441,7 +621,7 @@ def update_task(task_index):
     return redirect(url_for('teammember'))
 
 # =====================================================
-# CLIENT INTERFACES
+# CLIENT INTERFACES & DASHBOARD AI CHATBOT ENGINE
 # =====================================================
 @app.route('/client')
 def client():
@@ -452,25 +632,103 @@ def client():
     my_meetings = [m for m in meetings if m.get('invitee_email') == user_email or m.get('host_email') == user_email]
     return render_template("client.html", projects=projects, meetings=my_meetings, meeting_link=MEETING_LINK)
 
+@app.route('/client/chat_api', methods=['POST'])
+def client_chatbot_handler():
+    """
+    Direct asynchronous parsing engine contextually responding 
+    to the client dashboard using structural Excel workspace records.
+    """
+    data = request.get_json() or {}
+    message = data.get('message', '').strip().lower()
+    
+    if not message:
+        return jsonify({"response": "I didn't receive a clear query payload. Could you repeat that?"})
+    
+    # Context data extraction from data matrix
+    projects = read_sheet('Projects')
+    meetings = read_sheet('Meetings')
+    
+    if "status" in message or "progress" in message or "project" in message:
+        if not projects:
+            return jsonify({"response": "Our database tracking shows no active platform deployment projects right now."})
+        reply = "🔍 **Current FlowBoard Project Status Insights:**<br><br>"
+        for p in projects:
+            reply += f"• **{p.get('name')}** (`{p.get('id')}`): `{p.get('status')}` | Progress: **{p.get('progress')}%** (Deadline: {p.get('deadline')})<br>"
+        return jsonify({"response": reply})
+        
+    elif "meeting" in message or "call" in message or "schedule" in message:
+        client_email = session.get('user', 'client@gmail.com')
+        my_meetings = [m for m in meetings if client_email.lower() in [str(m.get('invitee_email')).lower(), str(m.get('host_email')).lower()]]
+        if not my_meetings:
+            return jsonify({"response": "You don't have any video conferences scheduled in the matrix ledger."})
+        reply = "📅 **Your Scheduled Sync Sessions:**<br><br>"
+        for m in my_meetings:
+            reply += f"• *{m.get('title')}* arranged for **{m.get('scheduled_time')}**.<br>"
+        return jsonify({"response": reply})
+        
+    elif "help" in message or "hello" in message or "hi" in message:
+        return jsonify({
+            "response": "👋 Hello! Welcome to your **FlowBoard AI Assistant Node**.<br>"
+                        "I am connected directly to your development database. Try asking me:<br>"
+                        "1. *'What is my project progress?'*<br>"
+                        "2. *'Do I have any meetings?'*"
+        })
+        
+    return jsonify({
+        "response": f"🤖 *FlowBoard Context Analysis Engine:* I parsed your query \"*{data.get('message')}*\" "
+                    "but couldn't map it to a specific database function. Try asking about your projects or scheduled meetings!"
+    })
+
 @app.route('/submit_project', methods=['POST'])
 def submit_project():
     projects = read_sheet('Projects')
     new_id = f"PROJ-{random.randint(100, 999)}"
+    p_name = request.form['project'].strip()
+    p_deadline = request.form['deadline']
+    
     projects.append({
         "id": new_id,
-        "name": request.form['project'].strip(),
+        "name": p_name,
         "description": request.form['description'].strip(),
-        "deadline": request.form['deadline'],
+        "deadline": p_deadline,
         "status": "Pending",
         "assigned_leader_email": "",
         "progress": 0
     })
     write_sheet('Projects', projects)
+    
+    trigger_telegram_alert(
+        f"🆕 *New Incoming Project Proposal Submission Entry Alert*\n\n"
+        f"• *ID Key Mapping:* `{new_id}`\n"
+        f"• *Title Workspace:* {p_name}\n"
+        f"• *Milestone Critical Target Deadline:* {p_deadline}\n"
+        f"• *Initialization State:* Pending Allocation Hub Review"
+    )
+    
+    # Broadcast live project alert to connected dashboard layers
+    socketio.emit('new_project_alert', {
+        "id": new_id,
+        "name": p_name,
+        "deadline": p_deadline
+    })
+    
     return redirect("/client")
 
 # =====================================================
-# COLLABORATIVE UTILITIES & SOURCE ARCHIVES
+# COLLABORATIVE UTILITIES & ROUTE ARCHIVES
 # =====================================================
+@app.route('/notifications')
+def get_notifications():
+    return jsonify({"notifications": notifications})
+
+@app.route('/chart_data')
+def get_chart_data():
+    # Added to fix the 404 error showing in UI log streams
+    projects = read_sheet('Projects')
+    labels = [p.get('name', 'Unknown') for p in projects]
+    progress = [p.get('progress', 0) for p in projects]
+    return jsonify({"labels": labels, "datasets": [{"label": "Progress %", "data": progress}]})
+
 @app.route('/save_code', methods=['POST'])
 def save_code():
     data = request.get_json() or {}
@@ -534,30 +792,17 @@ def handle_chat_delivery(data):
         'message': message,
         'timestamp': timestamp
     }
-    emit('receive_message', payload, to=room)
+    emit('media_track_altered', payload, to=room)
 
-@socketio.on('toggle_media_track')
-def handle_media_stream_signals(data):
-    room = data.get('room', 'public_lobby')
-    media_type = data.get('type')  
-    is_enabled = data.get('enabled')
-    sender = data.get('sender', 'Anonymous')
-    
-    payload = {
-        'user': sender,
-        'sender': sender,
-        'type': media_type,
-        'enabled': is_enabled
-    }
-    emit('media_state_altered', payload, to=room)
+# =====================================================
+# PERSISTENT THREAD LIFECYCLE CONTROLLER
+# =====================================================
+if __name__ == '__main__':
+    # Verify main context worker process initialization framework
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        telegram_thread = threading.Thread(target=run_telegram_polling_thread, daemon=True)
+        telegram_thread.start()
+    else:
+        print("Waiting for main application thread synchronization wrapper...")
 
-@socketio.on('webrtc_signal')
-def handle_webrtc_pass_through(data):
-    room = data.get('room')
-    emit('webrtc_response', data, to=room, include_self=False)
-
-# Modified: Unified system initialization handling thread parameters cleanly
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5050))
-    print(f"🚀 Unified Flowboard Threading Infrastructure Active on Port: {port}")
-    socketio.run(app, host="0.0.0.0", port=port, use_reloader=False)
+    socketio.run(app, host='127.0.0.1', port=5000, debug=True)

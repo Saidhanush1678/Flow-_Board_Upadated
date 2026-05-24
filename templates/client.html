@@ -280,7 +280,6 @@
 
 <body>
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
         <h2>FlowBoard</h2>
         <a href="#" onclick="showSection('dashboard')">
@@ -292,7 +291,6 @@
         <a href="#" onclick="showSection('projects')">
             <i class="fa-solid fa-folder"></i> My Projects
         </a>
-        <!-- NEW: Scheduled Meetings Link -->
         <a href="#" onclick="showSection('meetings')">
             <i class="fa-solid fa-calendar-days"></i> Scheduled Meetings
         </a>
@@ -304,10 +302,8 @@
         </a>
     </div>
 
-    <!-- MAIN -->
     <div class="main">
 
-        <!-- TOPBAR -->
         <div class="topbar">
             <h1>Client Dashboard</h1>
             <div class="profile">
@@ -317,7 +313,6 @@
             </div>
         </div>
 
-        <!-- DASHBOARD -->
         <div id="dashboard" class="section active">
             <div class="cards">
                 <div class="card stats-card">
@@ -342,14 +337,12 @@
                 </div>
             </div>
 
-            <!-- CHART -->
             <div class="chart-container">
                 <h2>Project Status Analytics</h2>
                 <canvas id="projectChart"></canvas>
             </div>
         </div>
 
-        <!-- REGISTER PROJECT -->
         <div id="register" class="section">
             <div class="card">
                 <h2>
@@ -364,7 +357,6 @@
             </div>
         </div>
 
-        <!-- PROJECTS -->
         <div id="projects" class="section">
             <div class="card">
                 <h2>
@@ -409,7 +401,6 @@
             </div>
         </div>
 
-        <!-- NEW: SCHEDULED MEETINGS SECTION -->
         <div id="meetings" class="section">
             <div class="card">
                 <h2>
@@ -455,7 +446,6 @@
             </div>
         </div>
 
-        <!-- INTEGRATED COMMUNICATION HUB -->
         <div id="communication" class="section">
             <div class="card" id="workspace-communication-node">
                 <h2><i class="fa-solid fa-comments"></i> Communication Hub (<span id="channel-scope">Loading Channels...</span>)</h2>
@@ -475,7 +465,6 @@
             </div>
         </div>
 
-        <!-- NOTIFICATIONS -->
         <div id="notifications" class="section">
             <div class="card">
                 <h2>
@@ -485,6 +474,17 @@
             </div>
         </div>
 
+    </div>
+
+    <div id="ai-chat-widget" style="position:fixed; bottom:20px; right:20px; width:320px; background:#1e1e2e; border:1px solid #313244; border-radius:10px; font-family:sans-serif; color:#cdd6f4; box-shadow:0 4px 12px rgba(0,0,0,0.5); z-index:9999;">
+        <div style="background:#89b4fa; color:#11111b; padding:10px; border-top-left-radius:9px; border-top-right-radius:9px; font-weight:bold;">🤖 FlowBoard AI Portal</div>
+        <div id="chat-output" style="height:200px; overflow-y:auto; padding:10px; font-size:13px; line-height:1.4; border-bottom:1px solid #313244;">
+            <div><em>Type "help" or ask about "projects" to see real-time updates!</em></div>
+        </div>
+        <div style="display:flex; padding:5px;">
+            <input type="text" id="chat-input" placeholder="Ask AI engine..." style="flex:1; background:#313244; border:none; padding:8px; color:#fff; border-radius:4px; outline:none;">
+            <button onclick="submitClientQuery()" style="background:#89b4fa; border:none; color:#11111b; margin-left:5px; padding:0 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Send</button>
+        </div>
     </div>
 
     <script>
@@ -614,6 +614,39 @@
         document.getElementById("chat-input-field").addEventListener("keyup", function(event) {
             if (event.key === "Enter") {
                 transmitMessageData();
+            }
+        });
+
+        /* ================= AI CHAT PORTAL ENGINE ================= */
+        function submitClientQuery() {
+            const inputField = document.getElementById('chat-input');
+            const outBox = document.getElementById('chat-output');
+            const msg = inputField.value.trim();
+            if(!msg) return;
+
+            outBox.innerHTML += `<div style="margin-top:5px; color:#a6e3a1;"><b>You:</b> ${msg}</div>`;
+            inputField.value = '';
+            outBox.scrollTop = outBox.scrollHeight;
+
+            fetch('/client/chat_api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            })
+            .then(res => res.json())
+            .then(data => {
+                outBox.innerHTML += `<div style="margin-top:8px; color:#cdd6f4; background:#252538; padding:6px; border-radius:4px;">${data.response}</div>`;
+                outBox.scrollTop = outBox.scrollHeight;
+            })
+            .catch(() => {
+                outBox.innerHTML += `<div style="margin-top:5px; color:#f38ba8;">⚠️ Link Exception encountered.</div>`;
+            });
+        }
+
+        // Catch enter key for AI Chat Widget field
+        document.getElementById("chat-input").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                submitClientQuery();
             }
         });
     </script>

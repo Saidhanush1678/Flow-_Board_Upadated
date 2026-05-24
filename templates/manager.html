@@ -22,6 +22,77 @@
             background: #0f172a;
             color: white;
             display: flex;
+            min-height: 100vh;
+        }
+
+        /* ================= LIGHT MODE OVERRIDES ================= */
+        body.light-mode {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+        body.light-mode .sidebar {
+            background: #f1f5f9;
+            border-right: 1px solid #cbd5e1;
+        }
+        body.light-mode .sidebar h2 {
+            color: #2563eb;
+        }
+        body.light-mode .sidebar a {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        body.light-mode .sidebar a:hover, body.light-mode .sidebar a.active-nav {
+            background: #2563eb;
+            color: white;
+        }
+        body.light-mode .topbar, body.light-mode .card, body.light-mode .chart-card, body.light-mode .chat-box {
+            background: white;
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+        }
+        body.light-mode .notification-dropdown {
+            background: white;
+            border: 1px solid #cbd5e1;
+        }
+        body.light-mode .notification-dropdown h4 {
+            background: #f1f5f9;
+            color: #2563eb;
+            border-bottom: 1px solid #cbd5e1;
+        }
+        body.light-mode .notification-item {
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        body.light-mode .notification-item:hover {
+            background: #f1f5f9;
+        }
+        body.light-mode input, body.light-mode textarea, body.light-mode select, body.light-mode #chat-scroller-box, body.light-mode #dashboard-chat-scroller {
+            background: #f1f5f9;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+        }
+        body.light-mode #dashboard-chat-scroller .chat-msg {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        body.light-mode th {
+            background: #e2e8f0;
+            color: #2563eb;
+        }
+        body.light-mode td {
+            border-bottom: 1px solid #cbd5e1;
+        }
+        body.light-mode .room-btn {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        body.light-mode .room-btn.active-room {
+            background: #2563eb;
+            color: white;
+        }
+        body.light-mode .media-rack button {
+            background: #cbd5e1;
+            color: #0f172a;
         }
 
         /* ================= SIDEBAR SYSTEM ================= */
@@ -61,12 +132,11 @@
         /* ================= MAIN CONTENT WRAPPER ================= */
         .main {
             margin-left: 260px;
-            width: 100%;
+            width: calc(100% - 260px);
             padding: 30px;
             transition: all 0.3s ease;
         }
 
-        /* Adjusted layout for Dashboard Grid to accommodate live chat feed */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -84,18 +154,96 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
+            background: #1e293b;
+            padding: 15px 25px;
+            border-radius: 16px;
+            border: 1px solid #334155;
         }
 
         .profile {
             display: flex;
             align-items: center;
             gap: 15px;
+            position: relative;
         }
 
         .profile img {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
+            border: 2px solid #38bdf8;
+        }
+
+        /* ================= NOTIFICATION BELL COMPONENT ================= */
+        .notification-wrapper {
+            position: relative;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .notification-bell {
+            font-size: 22px;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .notification-bell:hover {
+            color: #38bdf8;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #1e293b;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 320px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .notification-dropdown h4 {
+            padding: 12px 16px;
+            background: #334155;
+            color: #38bdf8;
+            border-bottom: 1px solid #475569;
+            font-size: 14px;
+        }
+
+        .notification-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #334155;
+            font-size: 13px;
+            color: #cbd5e1;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: #475569;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
         }
 
         /* ================= FORMS & INTERACTIVES ================= */
@@ -164,7 +312,7 @@
         /* ================= CARDS FRAMEWORK ================= */
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
@@ -179,12 +327,44 @@
 
         .stats-card {
             text-align: center;
+            position: relative;
         }
 
         .stats-card h1 {
-            font-size: 40px;
+            font-size: 36px;
             margin-top: 10px;
             color: #38bdf8;
+        }
+
+        /* AI Risk Gauge Card Modification */
+        .risk-gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .risk-value {
+            font-size: 38px;
+            font-weight: bold;
+            color: #f43f5e !important;
+            text-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+        }
+
+        .risk-indicator-bar {
+            width: 100%;
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .risk-indicator-fill {
+            height: 100%;
+            width: 28%; /* Linked to AI Risk Profile Matrix dynamic value */
+            background: linear-gradient(to right, #eab308, #f43f5e);
+            border-radius: 3px;
         }
 
         .section { display: none; }
@@ -263,6 +443,7 @@
 
         #dashboard-chat-scroller {
             height: 380px;
+            overflow-y: auto;
         }
 
         .chat-msg {
@@ -273,6 +454,7 @@
             width: fit-content;
             max-width: 80%;
             word-break: break-word;
+            font-size: 14px;
         }
 
         .chat-system-alert {
@@ -282,20 +464,13 @@
             font-size: 13px;
         }
 
-        .live-badge { 
-            padding: 6px 12px; 
-            background: #e11d48; 
-            border-radius: 6px; 
-            font-size: 11px; 
-            font-weight: bold; 
-        }
-
         /* ================= ANALYTICS CHART GRID ================= */
         .chart-container-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
             margin-top: 10px;
+            margin-bottom: 20px;
         }
 
         .chart-card {
@@ -313,8 +488,9 @@
             align-items: center;
         }
 
-        .chart-card.pie-box canvas {
-            max-height: 220px !important;
+        .chart-card canvas {
+            max-height: 230px !important;
+            width: 100% !important;
         }
 
         .chart-card h4 {
@@ -336,7 +512,7 @@
         @media(max-width: 768px) {
             body { flex-direction: column; }
             .sidebar { width: 100%; position: relative; height: auto; }
-            .main { margin-left: 0; padding: 15px; }
+            .main { margin-left: 0; width: 100%; padding: 15px; }
         }
     </style>
 </head>
@@ -357,9 +533,23 @@
         <div class="topbar">
             <h1>Operational Management Hub</h1>
             <div class="profile">
+                
+                <button id="theme-toggle-btn" onclick="toggleTheme()" style="margin-top: 0; padding: 8px 15px; background: #475569;"><i class="fa-solid fa-sun"></i> Light Mode</button>
+
+                <div class="notification-wrapper" onclick="toggleNotifications(event)">
+                    <i class="fa-solid fa-bell notification-bell"></i>
+                    <div class="notification-badge" id="alert-count">3</div>
+                    <div class="notification-dropdown" id="notificationMenu">
+                        <h4>System Pipeline Actions</h4>
+                        <div class="notification-item"><i class="fa-solid fa-triangle-exclamation" style="color:#eab308; margin-right:5px;"></i> Quantum Migration delta delay window reached 12ms.</div>
+                        <div class="notification-item"><i class="fa-solid fa-circle-check" style="color:#22c55e; margin-right:5px;"></i> Node Leader signature validated for alpha workspace.</div>
+                        <div class="notification-item"><i class="fa-solid fa-circle-info" style="color:#38bdf8; margin-right:5px;"></i> Socket.io pipeline layer refreshed connection pool.</div>
+                    </div>
+                </div>
+
                 <img src="https://i.pravatar.cc/100" alt="Profile">
                 <p>System Manager Admin</p>
-                <button onclick="logout()" style="background: #ef4444; margin-top: 0;">Logout</button>
+                <button onclick="logout()" style="background: #ef4444; margin-top: 0; padding: 8px 15px;">Logout</button>
             </div>
         </div>
 
@@ -378,9 +568,10 @@
                     <h2>Completed Architecture</h2>
                     <h1>{{ projects|selectattr("status","equalto","Completed")|list|length if projects else 7 }}</h1>
                 </div>
-                <div class="card stats-card">
-                    <h2>Pending Allocation</h2>
-                    <h1>{{ projects|selectattr("status","equalto","Pending")|list|length if projects else 3 }}</h1>
+                <div class="card stats-card flex-card risk-gauge-container">
+                    <h2>AI Delay Risk Factor</h2>
+                    <h1 class="risk-value">28%</h1>
+                    <div class="risk-indicator-bar"><div class="risk-indicator-fill"></div></div>
                 </div>
                 <div class="card stats-card">
                     <h2>System Actions</h2>
@@ -389,14 +580,12 @@
             </div>
 
             <div class="dashboard-grid">
-                
                 <div>
                     <div class="chart-container-grid">
                         <div class="chart-card">
                             <h4><i class="fa-solid fa-tasks" style="color: #38bdf8;"></i> Active Project Lifecycle Status</h4>
                             <canvas id="projectProgressChart"></canvas>
                         </div>
-                        
                         <div class="chart-card">
                             <h4><i class="fa-solid fa-users-gear" style="color: #a855f7;"></i> Team Workload Capacity Allocation</h4>
                             <canvas id="teamWorkloadChart"></canvas>
@@ -408,9 +597,8 @@
                             <h4><i class="fa-solid fa-chart-area" style="color: #22c55e;"></i> Task Velocity Analytics</h4>
                             <canvas id="taskAnalyticsChart"></canvas>
                         </div>
-
                         <div class="chart-card pie-box">
-                            <h4><i class="fa-solid fa-pie-chart" style="color: #f59e0b;"></i> Sprint Structural Performance Delta</h4>
+                            <h4><i class="fa-solid fa-chart-pie" style="color: #f59e0b;"></i> Sprint Structural Delta</h4>
                             <canvas id="sprintPerformanceChart"></canvas>
                         </div>
                     </div>
@@ -429,7 +617,6 @@
                         <button onclick="sendDashboardMessage()" style="margin-top:0; padding: 10px 15px;">Send</button>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -617,6 +804,7 @@
                     <select name="role">
                         <option value="Client">Client</option>
                         <option value="Team Leader">Team Leader</option>
+						<option value="Team Leader">Team Member</option>
                     </select>
                     <button type="submit">Create User Profile Node</button>
                 </form>
@@ -646,222 +834,199 @@
 
         function logout() { window.location.href = "/logout"; }
 
-        function switchChannel(targetRoom) {
-            if (currentScopeRoom === targetRoom) return;
-            document.getElementById("btn-tl-room").classList.remove("active-room");
-            document.getElementById("btn-client-room").classList.remove("active-room");
+        function toggleNotifications(event) {
+            event.stopPropagation();
+            const nMenu = document.getElementById('notificationMenu');
+            nMenu.style.display = (nMenu.style.display === 'block') ? 'none' : 'block';
+        }
 
-            if (targetRoom === 'team_leader_room') {
-                document.getElementById("btn-tl-room").classList.add("active-room");
+        document.addEventListener('click', function() {
+            document.getElementById('notificationMenu').style.display = 'none';
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const btn = document.getElementById('theme-toggle-btn');
+            if(document.body.classList.contains('light-mode')) {
+                btn.innerHTML = '<i class="fa-solid fa-moon"></i> Dark Mode';
+                updateChartThemes(true);
             } else {
-                document.getElementById("btn-client-room").classList.add("active-room");
-            }
-
-            document.getElementById("chat-scroller-box").innerHTML = "";
-            currentScopeRoom = targetRoom;
-            socket.emit('join_room', { username: appUserName, room: currentScopeRoom });
-        }
-
-        function sendMessage() {
-            let inputField = document.getElementById("msg");
-            let messageText = inputField.value.trim();
-            if (messageText !== "") {
-                socket.emit('send_chat_message', {
-                    room: currentScopeRoom, sender: appUserName, message: messageText
-                });
-                inputField.value = "";
+                btn.innerHTML = '<i class="fa-solid fa-sun"></i> Light Mode';
+                updateChartThemes(false);
             }
         }
 
-        function sendDashboardMessage() {
-            let inputField = document.getElementById("dashboard-msg");
-            let messageText = inputField.value.trim();
-            if (messageText !== "") {
-                socket.emit('send_chat_message', {
-                    room: currentScopeRoom, sender: appUserName, message: messageText
-                });
-                inputField.value = "";
+        // =================================================================
+        //                   INITIALIZING MODERN CHART STYLES
+        // =================================================================
+        Chart.defaults.font.family = 'Arial, sans-serif';
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+        Chart.defaults.plugins.legend.labels.boxWidth = 8;
+
+        const chartColors = {
+            blue: '#38bdf8',
+            purple: '#a855f7',
+            green: '#22c55e',
+            orange: '#f59e0b',
+            pink: '#f43f5e',
+            gridDark: '#334155',
+            gridLight: '#cbd5e1',
+            textDark: '#94a3b8',
+            textLight: '#475569'
+        };
+
+        // 1. Active Project Lifecycle Status (Bar Chart)
+        const ctxProgress = document.getElementById('projectProgressChart').getContext('2d');
+        const progressChart = new Chart(ctxProgress, {
+            type: 'bar',
+            data: {
+                labels: ['Pending', 'In Progress', 'Testing', 'Completed'],
+                datasets: [{
+                    label: 'Allocation count',
+                    data: [3, 5, 2, 7],
+                    backgroundColor: chartColors.blue,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    maxBarThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: chartColors.textDark } },
+                    y: { grid: { color: chartColors.gridDark }, ticks: { color: chartColors.textDark, stepSize: 2 } }
+                }
             }
-        }
-
-        function toggleMedia(type) {
-            deviceMediaToggleState[type] = !deviceMediaToggleState[type];
-            socket.emit('toggle_media_track', {
-                room: currentScopeRoom, type: type, enabled: deviceMediaToggleState[type], sender: appUserName
-            });
-        }
-
-        function lookupInvitee() { /* Fetch invitee logic */ }
-        function launchWorkspaceEditor() { 
-            let chosenFile = document.getElementById("file_selector").value;
-            if(chosenFile) {
-                document.getElementById("editor_iframe").src = `/edit_file_source/${encodeURIComponent(chosenFile)}`;
-                document.getElementById("workspace_frame_wrapper").style.display = "block";
-            }
-        }
-
-        /* WEB CONTEXT RECEPTORS (Appends to both main workspace chat & dashboard preview feed) */
-        function renderIncomingSystemMessage(msg) {
-            const html = `<div class="chat-system-alert">${msg}</div>`;
-            document.getElementById("chat-scroller-box").innerHTML += html;
-            document.getElementById("dashboard-chat-scroller").innerHTML += html;
-            scrollBuffers();
-        }
-
-        function renderIncomingChatMessage(data) {
-            const displayMsg = data.msg || data.message;
-            const time = data.timestamp || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const html = `<div class="chat-msg"><b>[${time}] ${data.sender}:</b> ${displayMsg}</div>`;
-            
-            document.getElementById("chat-scroller-box").innerHTML += html;
-            document.getElementById("dashboard-chat-scroller").innerHTML += html;
-            scrollBuffers();
-        }
-
-        function scrollBuffers() {
-            document.getElementById("chat-scroller-box").scrollTop = document.getElementById("chat-scroller-box").scrollHeight;
-            document.getElementById("dashboard-chat-scroller").scrollTop = document.getElementById("dashboard-chat-scroller").scrollHeight;
-        }
-
-        socket.on('status_message', function(data) { renderIncomingSystemMessage(data.msg || data.message); });
-        socket.on('receive_message', function(data) { renderIncomingChatMessage(data); });
-        socket.on('media_state_altered', function(data) {
-            let statusColor = data.enabled ? "#10b981" : "#ef4444";
-            renderIncomingSystemMessage(`<span style="color:${statusColor}"><i class="fa-solid fa-circle-info"></i> ${data.user || data.sender} toggled ${data.type} to ${data.enabled ? 'ON' : 'OFF'}.</span>`);
         });
 
-        // Key Listener Hooks for Inputs
-        document.getElementById("msg").addEventListener("keyup", e => { if (e.key === "Enter") sendMessage(); });
-        document.getElementById("dashboard-msg").addEventListener("keyup", e => { if (e.key === "Enter") sendDashboardMessage(); });
+        // 2. Team Workload Capacity Allocation (Line Chart)
+        const ctxWorkload = document.getElementById('teamWorkloadChart').getContext('2d');
+        const workloadGradient = ctxWorkload.createLinearGradient(0, 0, 0, 200);
+        workloadGradient.addColorStop(0, 'rgba(168, 85, 247, 0.3)');
+        workloadGradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
 
-
-        /* ================= INITIALIZING CHART.JS VISUALIZATIONS ================= */
-        document.addEventListener("DOMContentLoaded", function() {
-            
-            // --- DYNAMIC MATRIX SCRAPER ---
-            let projectLabels = [];
-            let projectProgressData = [];
-
-            // Targeted parsing of the project view data row cells 
-            const tableRows = document.querySelectorAll("#projects table tbody tr");
-            
-            tableRows.forEach(row => {
-                const cells = row.querySelectorAll("td");
-                if (cells.length >= 5) {
-                    const name = cells[1].innerText.trim();
-                    const progress = parseInt(cells[4].innerText.replace('%', '').trim()) || 0;
-                    
-                    projectLabels.push(name);
-                    projectProgressData.push(progress);
+        const teamWorkloadChart = new Chart(ctxWorkload, {
+            type: 'line',
+            data: {
+                labels: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
+                datasets: [{
+                    label: 'Capacity %',
+                    data: [65, 85, 40, 95, 70],
+                    borderColor: chartColors.purple,
+                    backgroundColor: workloadGradient,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: chartColors.purple,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: chartColors.textDark } },
+                    y: { grid: { color: chartColors.gridDark }, ticks: { color: chartColors.textDark }, min: 0, max: 100 }
                 }
-            });
-
-            // Safeguard fallback if array elements are absent from templating
-            if (projectLabels.length === 0) {
-                projectLabels = ['Quantum Core Migration', 'Neural Ledger Vault'];
-                projectProgressData = [65, 0];
             }
-
-            // Shared styling configs
-            const gridConfig = { color: 'rgba(71, 85, 105, 0.2)' };
-
-            // 1. Matrix Structural Dynamic Bar Chart
-            new Chart(document.getElementById('projectProgressChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: projectLabels,
-                    datasets: [{
-                        label: 'Completion Ratio (%)',
-                        data: projectProgressData,
-                        backgroundColor: '#38bdf8',
-                        borderColor: '#0284c7',
-                        borderWidth: 1,
-                        borderRadius: 8,
-                        barThickness: 25
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        x: { grid: gridConfig, ticks: { color: '#94a3b8' } }, 
-                        y: { grid: gridConfig, max: 100, ticks: { color: '#94a3b8' } } 
-                    }
-                }
-            });
-
-            // 2. Team Workload Bar Chart
-            new Chart(document.getElementById('teamWorkloadChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Alpha Team', 'Beta Ops', 'Delta Sec', 'Infra Dev'],
-                    datasets: [{
-                        label: 'Assigned Directives',
-                        data: [7, 12, 4, 9],
-                        backgroundColor: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b'],
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        x: { grid: gridConfig, ticks: { color: '#94a3b8' } }, 
-                        y: { grid: gridConfig, ticks: { color: '#94a3b8' } } 
-                    }
-                }
-            });
-
-            // 3. Task Velocity Area Chart
-            new Chart(document.getElementById('taskAnalyticsChart').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'],
-                    datasets: [{
-                        label: 'Velocity Index',
-                        data: [20, 45, 28, 60],
-                        borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        x: { grid: gridConfig, ticks: { color: '#94a3b8' } }, 
-                        y: { grid: gridConfig, ticks: { color: '#94a3b8' } } 
-                    }
-                }
-            });
-
-            // 4. Sprint Performance Doughnut Chart
-            new Chart(document.getElementById('sprintPerformanceChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Delivered', 'Spillover', 'Blocked'],
-                    datasets: [{
-                        data: [70, 20, 10],
-                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom',
-                            labels: { color: '#94a3b8', boxWidth: 12 }
-                        } 
-                    }
-                }
-            });
         });
+
+        // 3. Task Velocity Analytics (Radar Chart)
+        const ctxAnalytics = document.getElementById('taskAnalyticsChart').getContext('2d');
+        const taskAnalyticsChart = new Chart(ctxAnalytics, {
+            type: 'radar',
+            data: {
+                labels: ['Velocity', 'Quality', 'Uptime', 'Deployment', 'Security'],
+                datasets: [{
+                    label: 'Current Window',
+                    data: [80, 90, 75, 85, 95],
+                    borderColor: chartColors.green,
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    borderWidth: 2,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        grid: { color: chartColors.gridDark },
+                        angleLines: { color: chartColors.gridDark },
+                        pointLabels: { color: chartColors.textDark, font: { size: 11 } },
+                        ticks: { display: false }
+                    }
+                }
+            }
+        });
+
+        // 4. Sprint Structural Delta (Doughnut Chart)
+        const ctxSprint = document.getElementById('sprintPerformanceChart').getContext('2d');
+        const sprintPerformanceChart = new Chart(ctxSprint, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Spillover', 'Blocked'],
+                datasets: [{
+                    data: [70, 20, 10],
+                    backgroundColor: [chartColors.green, chartColors.orange, chartColors.pink],
+                    borderWidth: 0,
+                    weight: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: chartColors.textDark, font: { size: 12 } }
+                    }
+                }
+            }
+        });
+
+        // Dynamic theme swapping function for Chart.js instances
+        function updateChartThemes(isLightMode) {
+            const textColor = isLightMode ? chartColors.textLight : chartColors.textDark;
+            const gridColor = isLightMode ? chartColors.gridLight : chartColors.gridDark;
+
+            // Bar chart updates
+            progressChart.options.scales.x.ticks.color = textColor;
+            progressChart.options.scales.y.ticks.color = textColor;
+            progressChart.options.scales.y.grid.color = gridColor;
+            progressChart.update();
+
+            // Line chart updates
+            teamWorkloadChart.options.scales.x.ticks.color = textColor;
+            teamWorkloadChart.options.scales.y.ticks.color = textColor;
+            teamWorkloadChart.options.scales.y.grid.color = gridColor;
+            teamWorkloadChart.update();
+
+            // Radar chart updates
+            taskAnalyticsChart.options.scales.r.grid.color = gridColor;
+            taskAnalyticsChart.options.scales.r.angleLines.color = gridColor;
+            taskAnalyticsChart.options.scales.r.pointLabels.color = textColor;
+            taskAnalyticsChart.update();
+
+            // Doughnut chart updates
+            sprintPerformanceChart.options.plugins.legend.labels.color = textColor;
+            sprintPerformanceChart.update();
+        }
+
+        // =================================================================
+        //               REMAINING SOCKET & APP PLACEHOLDERS
+        // =================================================================
+        function switchChannel(room) { console.log("Channel changed to: " + room); }
+        function toggleMedia(type) { console.log("Toggled media matrix endpoint for: " + type); }
+        function sendMessage() { console.log("Message pipeline push initiated."); }
+        function sendDashboardMessage() { console.log("Global broadcast pipeline triggered."); }
+        function lookupInvitee() { console.log("Querying database context cache nodes..."); }
+        function launchWorkspaceEditor() { document.getElementById('workspace_frame_wrapper').style.display='block'; }
     </script>
 </body>
 </html>

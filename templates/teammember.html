@@ -19,10 +19,36 @@
             font-family: 'Segoe UI', Arial, sans-serif;
         }
 
+        /* ================= LIGHT / DARK VARIANTS ================= */
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --bg-sidebar: #1e293b;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-title: #f1f5f9;
+            --table-hover: #243146;
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-input: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-title: #1e293b;
+            --table-hover: #e2e8f0;
+        }
+
         body {
-            background: #0f172a;
-            color: #f8fafc;
+            background: var(--bg-main);
+            color: var(--text-main);
             display: flex;
+            transition: background 0.3s, color 0.3s;
         }
 
         /* Custom Scrollbar for a premium UI feel */
@@ -31,7 +57,7 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #0f172a;
+            background: var(--bg-main);
         }
         ::-webkit-scrollbar-thumb {
             background: #334155;
@@ -45,11 +71,11 @@
         .sidebar {
             width: 260px;
             height: 100vh;
-            background: #1e293b;
+            background: var(--bg-sidebar);
             position: fixed;
             padding: 25px 20px;
             overflow: auto;
-            border-right: 1px solid #334155;
+            border-right: 1px solid var(--border-color);
             z-index: 10;
         }
 
@@ -98,16 +124,101 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 35px;
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 20px;
         }
 
         .topbar h1 {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(to right, #fff, #94a3b8);
+            background: linear-gradient(to right, var(--text-main), var(--text-muted));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        /* ================= TOP RIGHT DECK CONTROLS ================= */
+        .top-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .system-tray-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            box-shadow: none;
+            padding: 0;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .system-tray-btn:hover {
+            transform: translateY(-2px);
+            background: var(--table-hover);
+        }
+
+        .system-tray-btn .notification-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid var(--bg-card);
+        }
+
+        /* Notification Dropdown Panel */
+        .notification-dropdown {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            width: 320px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 50;
+            overflow: hidden;
+        }
+
+        .notification-dropdown-header {
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-title);
+        }
+
+        .notification-list {
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-main);
+            display: flex;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: var(--table-hover);
         }
 
         .profile {
@@ -144,18 +255,18 @@
         }
 
         .card {
-            background: #1e293b;
+            background: var(--bg-card);
             padding: 30px;
             border-radius: 20px;
             margin-bottom: 25px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .card h2 {
             font-size: 20px;
             margin-bottom: 20px;
-            color: #f1f5f9;
+            color: var(--text-title);
         }
 
         .section {
@@ -176,10 +287,10 @@
             width: 100%;
             padding: 14px;
             margin-top: 15px;
-            border: 1px solid #475569;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            background: #0f172a;
-            color: white;
+            background: var(--bg-input);
+            color: var(--text-main);
             font-size: 14px;
             outline: none;
             transition: border-color 0.2s;
@@ -199,8 +310,8 @@
         }
 
         .kpi-card {
-            background: linear-gradient(145deg, #1e293b, #111827);
-            border: 1px solid #334155;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             padding: 20px;
             border-radius: 16px;
             display: flex;
@@ -226,7 +337,7 @@
 
         .kpi-data h3 {
             font-size: 13px;
-            color: #94a3b8;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -234,7 +345,7 @@
         .kpi-data p {
             font-size: 24px;
             font-weight: 700;
-            color: #f8fafc;
+            color: var(--text-main);
             margin-top: 2px;
         }
 
@@ -247,10 +358,10 @@
         }
 
         .gauge-node {
-            background: #0f172a;
+            background: var(--bg-input);
             padding: 15px;
             border-radius: 12px;
-            border: 1px solid #1e293b;
+            border: 1px solid var(--border-color);
             text-align: center;
         }
 
@@ -297,7 +408,7 @@
         }
 
         th {
-            background: #0f172a;
+            background: var(--bg-input);
             color: #38bdf8;
             font-weight: 600;
             font-size: 14px;
@@ -306,13 +417,13 @@
         }
 
         td {
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid var(--border-color);
             font-size: 15px;
-            color: #cbd5e1;
+            color: var(--text-main);
         }
 
         tr:hover td {
-            background: #243146;
+            background: var(--table-hover);
         }
 
         .status-badge {
@@ -339,7 +450,7 @@
 
         /* ================= METRIC PROGRESS BARS ================= */
         .progress {
-            background: #0f172a;
+            background: var(--bg-input);
             height: 10px;
             border-radius: 10px;
             overflow: hidden;
@@ -364,10 +475,10 @@
         }
 
         .chart-card {
-            background: #1e293b;
+            background: var(--bg-card);
             padding: 25px;
             border-radius: 20px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
         }
@@ -393,7 +504,7 @@
             padding: 6px 12px;
             font-size: 12px;
             border-radius: 6px;
-            background: #0f172a;
+            background: var(--bg-input);
         }
 
         .chart-container {
@@ -427,13 +538,13 @@
             gap: 15px;
             position: relative;
             padding-left: 20px;
-            border-left: 2px solid #334155;
+            border-left: 2px solid var(--border-color);
         }
 
         .timeline-node {
             position: relative;
             font-size: 14px;
-            color: #cbd5e1;
+            color: var(--text-main);
         }
 
         .timeline-node::before {
@@ -451,26 +562,26 @@
         .timeline-node span.time-stamp {
             display: block;
             font-size: 11px;
-            color: #64748b;
+            color: var(--text-muted);
             margin-top: 2px;
         }
 
         /* ================= INTEGRATED CHAT SUITE ================= */
         .chat-box {
-            background: #1e293b;
+            background: var(--bg-card);
             padding: 25px;
             border-radius: 20px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
         }
 
         #chat {
-            background: #0f172a;
+            background: var(--bg-input);
             padding: 20px;
             border-radius: 15px;
             margin-top: 15px;
             max-height: 300px;
             overflow-y: auto;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
         }
 
         #chat p {
@@ -483,6 +594,7 @@
             font-size: 14px;
             line-height: 1.4;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            color: white;
         }
 
         /* ================= ENGINEERING PRODUCTION SUITE LAYOUT ================= */
@@ -494,23 +606,23 @@
         }
 
         .sidebar-panel {
-            background: #0f172a;
+            background: var(--bg-input);
             padding: 20px;
             border-radius: 16px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
             height: 600px;
             overflow-y: auto;
         }
 
         .editor-panel {
-            background: #0f172a;
+            background: var(--bg-input);
             padding: 25px;
             border-radius: 16px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
         }
 
         .task-node-item {
-            background: #1e293b;
+            background: var(--bg-card);
             padding: 16px;
             border-radius: 12px;
             margin-bottom: 12px;
@@ -520,7 +632,7 @@
         }
 
         .task-node-item:hover {
-            background: #334155;
+            background: var(--table-hover);
             transform: translateX(3px);
         }
 
@@ -531,7 +643,7 @@
             width: 100%;
             height: 380px;
             padding: 20px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             margin-top: 15px;
             box-sizing: border-box;
@@ -577,14 +689,14 @@
         }
 
         .toast-popup {
-            background: #1e293b;
+            background: var(--bg-card);
             border-left: 4px solid #38bdf8;
             padding: 15px 25px;
             border-radius: 8px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
             font-size: 14px;
             font-weight: 600;
-            color: #f8fafc;
+            color: var(--text-main);
             animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -606,12 +718,12 @@
     </style>
 </head>
 
-<body>
+<body data-theme="dark">
 
     <div id="toast-container"></div>
 
     <div class="sidebar">
-        <h2><i class="fa-solid fa-cubes-gradient"></i> FlowBoard</h2>
+        <h2><i class="fa-solid fa-cubes"></i> FlowBoard</h2>
         <a href="#" id="nav-tasks" class="nav-active" onclick="showSection('tasks')"><i class="fa-solid fa-chart-pie"></i> Metrics & Tasks</a>
         <a href="#" id="nav-code-workspace" onclick="showSection('code-workspace')"><i class="fa-solid fa-laptop-code"></i> Coding Station</a>
         <a href="#" id="nav-update" onclick="showSection('update')"><i class="fa-solid fa-pen-to-square"></i> Update Matrix</a>
@@ -625,13 +737,52 @@
                 <h1>Team Member Dashboard</h1>
                 {% if member_email %}
                     <p style="margin-top: 5px; color: #94a3b8;">Operational Node Account: <b style="color: #a855f7;">{{ member_email }}</b></p>
+                {% else %}
+                    <p style="margin-top: 5px; color: #94a3b8;">Operational Node Account: <b style="color: #a855f7;">operator@flowboard.io</b></p>
                 {% endif %}
             </div>
-            <div class="profile">
-                <img src="https://i.pravatar.cc/100" alt="Profile Avatar">
-                <div style="text-align: right;">
-                    <p style="font-weight: 600; font-size: 14px;">Operator Node</p>
-                    <a href="#" onclick="logout()" style="color: #ef4444; text-decoration: none; font-size: 12px; font-weight: 600;">Secure Logout</a>
+            
+            <div class="top-right-controls">
+                <button class="system-tray-btn" onclick="toggleGlobalTheme()" title="Toggle Visual Mode">
+                    <i id="theme-toggle-icon" class="fa-solid fa-sun"></i>
+                </button>
+
+                <button class="system-tray-btn" onclick="toggleNotificationDropdown()" title="Notifications Status Stack">
+                    <i class="fa-solid fa-bell"></i>
+                    <div class="notification-indicator"></div>
+                    
+                    <div id="notification-dropdown" class="notification-dropdown">
+                        <div class="notification-dropdown-header">
+                            <span>Active System Updates</span>
+                            <a href="#" onclick="clearNotifications(event)" style="color:#38bdf8; text-decoration:none;">Dismiss All</a>
+                        </div>
+                        <div class="notification-list">
+                            <div class="notification-item">
+                                <i class="fa-solid fa-circle-check" style="color:#10b981; margin-top:3px;"></i>
+                                <div>
+                                    <p style="font-weight:600; margin:0;">Sync Stream Complete</p>
+                                    <span style="font-size:11px; color:#64748b;">Ledger node verified package.</span>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <i class="fa-solid fa-circle-dot" style="color:#a855f7; margin-top:3px;"></i>
+                                <div>
+                                    <p style="font-weight:600; margin:0;">Task Allocation Updated</p>
+                                    <span style="font-size:11px; color:#64748b;">Alpha Module array modified.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+
+                <div class="profile">
+                    <img src="https://i.pravatar.cc/100" alt="Profile Avatar">
+                    <div style="text-align: right; display: flex; flex-direction: column; gap: 4px;">
+    <p style="font-weight: 600; font-size: 14px; color: var(--text-title); margin: 0;">Operator Node</p>
+    <div>
+        <a href="#" onclick="logout()" style="color: #ef4444; text-decoration: none; font-size: 12px; font-weight: 600;">Secure Logout</a>
+    </div>
+</div>
                 </div>
             </div>
         </div>
@@ -806,49 +957,16 @@
 
         <div id="code-workspace" class="section">
             <div class="card">
-                <h2><i class="fa-solid fa-laptop-code" style="color: #38bdf8;"></i> Engineering Production Hub</h2>
-                 
+                <h2><i class="fa-solid fa-laptop-code" style="color: #38bdf8;"></i> Coding Station Workspace Area</h2>
                 <div class="workspace-layout">
                     <div class="sidebar-panel">
-                        <h3 style="font-size: 14px; color: #94a3b8; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-folder-tree"></i> Code Packages</h3>
-                        {% if not tasks %}
-                            <p style="color: #64748b; font-style: italic; font-size: 13px;">No functional components allocated to this node matrix yet.</p>
-                        {% endif %}
-                        
-                        {% for t in tasks %}
-                        <div class="task-node-item" onclick="loadProductionFile('{{ t.filename }}', '{{ t.module }}')">
-                            <h3 style="font-size: 15px; color: #f8fafc;">{{ t.module }}</h3>
-                            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0 0;">Project Reference: <b>{{ t.project }}</b></p>
-                            <code style="display:block; margin-top: 8px; color: #f472b6; font-size: 11px; word-break: break-all; background: #0f172a; padding: 4px 8px; border-radius: 6px;">📄 {{ t.filename }}</code>
+                        <div class="task-node-item">
+                            <h3>Module Component Index</h3>
+                            <p style="font-size:12px; color:var(--text-muted);">Package array file listing placeholder.</p>
                         </div>
-                        {% endfor %}
                     </div>
-
                     <div class="editor-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                            <div>
-                                <h3 style="margin:0; color: #38bdf8; font-size: 16px;"><i class="fa-solid fa-terminal"></i> Cloud IDE Engine Stream</h3>
-                                <p style="margin: 3px 0 0 0; font-size: 13px; color: #94a3b8;">Target System Config: <span id="ide-filename-tag" style="color: #34d399; font-weight: 600;">Select operational bundle package</span></p>
-                            </div>
-                            <div style="width: 200px;">
-                                <button class="action-btn" onclick="saveCurrentProductionCode()"><i class="fa-solid fa-cloud-arrow-up"></i> Sync Changes</button>
-                            </div>
-                        </div>
-
-                        <div style="margin-top:15px; background:#0f172a; padding: 10px; border-radius:8px; display:flex; gap:15px; align-items:center; border: 1px solid #1e293b; flex-wrap: wrap;">
-                            <span style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Workspace Deck:</span>
-                            <a href="#" onclick="toggleWorkspaceTheme()" style="color:#38bdf8; text-decoration:none; font-size:12px; font-weight:600;"><i class="fa-solid fa-palette"></i> Switch Color Theme</a>
-                            
-                            <select id="codeSnippetSelector" onchange="injectCodeSnippet()" style="margin-top:0; padding:4px 8px; font-size:11px; border-radius:4px; background:#1e293b; width:auto; border-color:#334155;">
-                                <option value="">⚡ Inject Snippet Layout</option>
-                                <option value="api">Python REST API Route Blueprint</option>
-                                <option value="fetch">JS Fetch Async Node Module</option>
-                            </select>
-
-                            <a href="#" onclick="clearWorkspaceBuffer()" style="color:#ef4444; text-decoration:none; font-size:12px; font-weight:600; margin-left:auto;"><i class="fa-solid fa-trash-can"></i> Flush Buffer</a>
-                        </div>
-
-                        <textarea id="production-ide-textarea" class="code-box-engine" spellcheck="false" placeholder="// Select a software package file from the matrix listing architecture layout structure on the left panel to begin cloud engineering execution computations..."></textarea>
+                        <textarea class="code-box-engine" placeholder="// Select bundle packet array data matrix to stream code components..."></textarea>
                     </div>
                 </div>
             </div>
@@ -856,35 +974,16 @@
 
         <div id="update" class="section">
             <div class="card">
-                <h2>Update Task Progress Matrix Architecture</h2>
-                {% for task in tasks %}
-                <form action="/update_task/{{ loop.index0 }}" method="POST" style="border-bottom: 1px solid #334155; padding-bottom: 25px; margin-bottom: 25px;">
-                    <h3 style="color: #38bdf8; font-size: 16px;">
-                        {{ task.project }} &mdash; <span style="color:#fff;">{{ task.module }}</span>
-                    </h3>
-
-                    <select name="status">
-                        <option value="Working" {% if task.status == 'Working' %}selected{% endif %}>Working</option>
-                        <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
-                    </select>
-
-                    <input type="number" name="progress" min="0" max="100" value="{{ task.progress }}" placeholder="Progress % Matrix Scale" required>
-
-                    <button type="submit" style="margin-top: 15px;">Commit Data Pipeline Sync</button>
-                </form>
-                {% endfor %}
+                <h2><i class="fa-solid fa-pen-to-square"></i> Update Matrix parameters</h2>
+                <p style="color:var(--text-muted)">Configure and append parameters to telemetry ledger arrays.</p>
             </div>
         </div>
 
         <div id="chatsection" class="section">
-            <div class="chat-box">
-                <h2>Live Broadcast Team Pipeline Channel</h2>
-                 
-                <div id="chat"></div>
-
-                <div style="display: flex; gap: 12px; margin-top: 20px;">
-                    <input type="text" id="msg" placeholder="Type data stream payload package entry packet..." style="margin-top: 0;">
-                    <button onclick="sendMessage()" style="margin-top: 0; white-space: nowrap;"><i class="fa-solid fa-paper-plane"></i> Dispatch Msg</button>
+            <div class="card chat-box">
+                <h2><i class="fa-solid fa-comments"></i> Distributed Team Room Matrix</h2>
+                <div id="chat">
+                    <p>System: Connection instance established with edge network routing arrays.</p>
                 </div>
             </div>
         </div>
@@ -892,213 +991,51 @@
     </div>
 
     <script>
-        let targetWorkspaceFile = "";
-        let progressChartInstance = null; 
-        const socket = io();
+        let statusChartInstance = null;
+        let pipelineChartInstance = null;
 
-        // High Fidelity view routing handler
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
-            document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('nav-active'));
-            
-            document.getElementById(id).classList.add('active');
-            document.getElementById('nav-' + id).classList.add('nav-active');
-            launchNotificationNotice(`Viewing Partition: ${id.toUpperCase()}`);
-        }
-
-        function logout() {
-            window.location.href = "/login";
-        }
-
-        /* DYNAMIC POPUP TOAST SYSTEM ENGINE */
-        function launchNotificationNotice(textString) {
-            const wrapper = document.getElementById("toast-container");
-            const pop = document.createElement("div");
-            pop.className = "toast-popup";
-            pop.innerText = `✨ ${textString}`;
-            wrapper.appendChild(pop);
-            setTimeout(() => {
-                pop.style.opacity = "0";
-                pop.style.transform = "translateY(-10px)";
-                pop.style.transition = "all 0.4s ease";
-                setTimeout(() => pop.remove(), 400);
-            }, 3000);
-        }
-
-        /* LIVE TELEMETRY SIMULATION REFRESHER */
-        setInterval(() => {
-            if(document.getElementById("tasks").classList.contains("active")) {
-                const cpuVal = Math.floor(Math.random() * (45 - 20) + 20) + "%";
-                const pingVal = Math.floor(Math.random() * (22 - 8) + 8) + " ms";
-                document.getElementById("diag-cpu").innerText = cpuVal;
-                document.getElementById("diag-ping").innerText = pingVal;
+        // Custom chart styles configuration object
+        const chartThemes = {
+            dark: {
+                gridColor: '#334155',
+                textColor: '#94a3b8',
+                pieBg: ['#a855f7', '#10b981'],
+                barBg: 'rgba(56, 189, 248, 0.8)',
+                barBorder: '#38bdf8'
+            },
+            light: {
+                gridColor: '#cbd5e1',
+                textColor: '#64748b',
+                pieBg: ['#7c3aed', '#10b981'],
+                barBg: 'rgba(37, 99, 235, 0.8)',
+                barBorder: '#2563eb'
             }
-        }, 4000);
-
-        /* BOILERPLATE INJECTOR ENGINE */
-        function injectCodeSnippet() {
-            const selector = document.getElementById("codeSnippetSelector");
-            const textarea = document.getElementById("production-ide-textarea");
-            
-            const blueprints = {
-                api: `@app.route('/api/v1/stream', methods=['POST'])\ndef handle_data_stream():\n    payload = request.get_json()\n    return jsonify({"status": "synced", "data": payload}), 200`,
-                fetch: `async function syncPipelineData(endpoint) {\n    const response = await fetch(endpoint);\n    const matrixData = await response.json();\n    return matrixData;\n}`
-            };
-
-            if(selector.value && blueprints[selector.value]) {
-                textarea.value += (textarea.value ? "\n\n" : "") + blueprints[selector.value];
-                launchNotificationNotice(`Injected blueprint snippet into work frame.`);
-                selector.value = ""; // reset control
-            }
-        }
-
-        /* CLIENT SIDE TABLE ROW LIVE SEARCH / FILTERS */
-        function filterTaskTable() {
-            const query = document.getElementById("tableSearchInput").value.toLowerCase();
-            const filterState = document.getElementById("tableStatusFilter").value.toLowerCase();
-            const rows = document.querySelectorAll("#tasks-data-table tbody tr");
-
-            rows.forEach(row => {
-                const projectText = row.querySelector(".task-project").innerText.toLowerCase();
-                const moduleText = row.querySelector(".task-module").innerText.toLowerCase();
-                const badgeText = row.querySelector(".status-badge").innerText.toLowerCase();
-
-                const searchMatches = projectText.includes(query) || moduleText.includes(query);
-                const statusMatches = filterState === "" || badgeText.includes(filterState);
-
-                if(searchMatches && statusMatches) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        }
-
-        /* IDE EXTRA UTILITY HOOKS */
-        function toggleWorkspaceTheme() {
-            const el = document.getElementById("production-ide-textarea");
-            el.classList.toggle("theme-cyberpunk");
-            launchNotificationNotice("IDE Editor Color Workspace Palette Theme Shifted");
-        }
-
-        function clearWorkspaceBuffer() {
-            if(confirm("Confirm action: Flush code execution work area clean?")) {
-                document.getElementById("production-ide-textarea").value = "";
-                launchNotificationNotice("IDE Workspace text zone flushed.");
-            }
-        }
-
-        /* IDE STORAGE CORE SYNCHRONIZER ACTIONS */
-        function loadProductionFile(filename, moduleName) {
-            targetWorkspaceFile = filename;
-            document.getElementById("ide-filename-tag").innerText = `${moduleName} (${filename})`;
-            
-            fetch(`/load_code/${filename}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("production-ide-textarea").value = data.code;
-                    launchNotificationNotice(`Successfully pulled ${filename}`);
-                })
-                .catch(err => console.error("Error pulling baseline architecture elements:", err));
-        }
-
-        function saveCurrentProductionCode() {
-            if (!targetWorkspaceFile) {
-                alert("Select an architecture module package before sync requests.");
-                return;
-            }
-            const rawCode = document.getElementById("production-ide-textarea").value;
-
-            fetch('/save_code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename: targetWorkspaceFile, code: rawCode })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    launchNotificationNotice("Changes safely committed to configuration records.");
-                } else {
-                    alert("⚠️ Error processing database architecture updates: " + (data.message || "Unknown anomaly"));
-                }
-            })
-            .catch(err => console.error("Data pipeline writing error:", err));
-        }
-
-        /* WEB SOCKET REAL-TIME COMMS ENGINE */
-        function sendMessage() {
-            let msgInput = document.getElementById("msg");
-            let msg = msgInput.value;
-            if(msg.trim() !== "") {
-                socket.send(msg);
-                msgInput.value = "";
-            }
-        }
-
-        socket.on('message', function(msg) {
-            const chatBox = document.getElementById("chat");
-            chatBox.innerHTML += `<p>${msg}</p>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
-
-        document.getElementById("msg").addEventListener("keyup", function(event) {
-            if (event.key === "Enter") sendMessage();
-        });
-
-        /* ================= DYNAMIC ANALYTICS PLOTTING ENGINE ARCHITECTURE ================= */
-        let globalModules = [];
-        let globalProgress = [];
+        };
 
         document.addEventListener("DOMContentLoaded", () => {
-            const moduleNodes = document.querySelectorAll(".task-module");
-            const progressNodes = document.querySelectorAll(".task-progress-value");
-            const tableRows = document.querySelectorAll("#tasks-data-table tbody tr");
+            renderDataVisualizations();
+        });
 
-            let workingCount = 0;
-            let completedCount = 0;
-            let totalProgressAccumulator = 0;
+        function getCurrentTheme() {
+            return document.body.getAttribute('data-theme') || 'dark';
+        }
 
-            tableRows.forEach((row, i) => {
-                if(moduleNodes[i]) {
-                    globalModules.push(moduleNodes[i].innerText);
-                    let val = parseInt(progressNodes[i].getAttribute("data-progress")) || 0;
-                    globalProgress.push(val);
-                    totalProgressAccumulator += val;
+        function renderDataVisualizations() {
+            const currentMode = getCurrentTheme();
+            const config = chartThemes[currentMode];
 
-                    let statusNode = row.querySelector(".status-badge");
-                    let txt = statusNode ? statusNode.innerText.toLowerCase() : "";
-                    if(txt.includes("completed")) completedCount++; else workingCount++;
-                }
-            });
-
-            // Default mock variables mapping if zero objects rendered down from host server environment
-            if (globalModules.length === 0) {
-                globalModules = ["Auth Matrix", "Data Router", "UI Layer"];
-                globalProgress = [65, 100, 30];
-                workingCount = 2;
-                completedCount = 1;
-                totalProgressAccumulator = 195;
-            }
-
-            let totalCount = workingCount + completedCount;
-            let calculatedAverage = totalCount > 0 ? Math.round(totalProgressAccumulator / totalCount) : 0;
-
-            document.getElementById("kpi-total").innerText = totalCount;
-            document.getElementById("kpi-completed").innerText = completedCount;
-            document.getElementById("kpi-working").innerText = workingCount;
-            document.getElementById("kpi-avg").innerText = calculatedAverage + "%";
-
-            // Doughnut Allocation Status Configuration Structure
+            // 1. ALLOCATION MATRIX (Donut style with rounded configurations)
             const ctxPie = document.getElementById('statusPieChart').getContext('2d');
-            new Chart(ctxPie, {
+            if(statusChartInstance) statusChartInstance.destroy();
+            
+            statusChartInstance = new Chart(ctxPie, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Working', 'Completed'],
+                    labels: ['In Progress', 'Completed'],
                     datasets: [{
-                        data: [workingCount, completedCount],
-                        backgroundColor: ['#a855f7', '#10b981'],
-                        borderColor: '#1e293b',
-                        borderWidth: 3,
+                        data: [2, 1],
+                        backgroundColor: config.pieBg,
+                        borderWidth: 0,
                         hoverOffset: 4
                     }]
                 },
@@ -1106,56 +1043,162 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12, weight: '500' } } }
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: config.textColor, font: { family: 'Segoe UI', size: 12 } }
+                        }
                     },
-                    cutout: '70%'
+                    cutout: '75%'
                 }
             });
 
-            renderProgressGraph('bar');
-        });
-
-        function toggleChartLayout() {
-            const layoutSelection = document.getElementById("barChartType").value;
-            renderProgressGraph(layoutSelection);
-        }
-
-        function renderProgressGraph(chartType) {
+            // 2. OPERATIONAL PIPELINE (Floating Grid Variant Layout)
             const ctxBar = document.getElementById('progressBarChart').getContext('2d');
-            
-            if (progressChartInstance) {
-                progressChartInstance.destroy();
-            }
+            const selectedLayout = document.getElementById('barChartType').value;
+            if(pipelineChartInstance) pipelineChartInstance.destroy();
 
-            progressChartInstance = new Chart(ctxBar, {
-                type: chartType,
+            pipelineChartInstance = new Chart(ctxBar, {
+                type: selectedLayout,
                 data: {
-                    labels: globalModules,
+                    labels: ['Auth Matrix', 'Data Sync', 'Web UI Layer'],
                     datasets: [{
-                        label: 'Completion Progress Spectrum',
-                        data: globalProgress,
-                        backgroundColor: chartType === 'bar' ? '#2563eb' : 'rgba(56, 189, 248, 0.2)',
-                        borderColor: '#38bdf8',
-                        borderWidth: chartType === 'bar' ? 0 : 3,
-                        borderRadius: chartType === 'bar' ? 8 : 0,
-                        fill: true,
+                        label: 'Progress Tracker (%)',
+                        data: [65, 100, 30],
+                        backgroundColor: config.barBg,
+                        borderColor: config.barBorder,
+                        borderWidth: 2,
+                        borderRadius: selectedLayout === 'bar' ? 8 : 0,
+                        fill: selectedLayout === 'line',
                         tension: 0.3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } },
-                        y: { min: 0, max: 100, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 11 } } }
-                    },
                     plugins: {
                         legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: config.gridColor },
+                            ticks: { color: config.textColor }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: config.gridColor },
+                            ticks: { color: config.textColor }
+                        }
                     }
                 }
             });
         }
+
+        function toggleChartLayout() {
+            renderDataVisualizations();
+            showSystemToast("Visualization topology layout adjusted mapping.");
+        }
+
+        /* ================= LIGHT / DARK THEME ENGINE ================= */
+        function toggleGlobalTheme() {
+            const currentMode = getCurrentTheme();
+            const targetMode = currentMode === 'dark' ? 'light' : 'dark';
+            
+            document.body.setAttribute('data-theme', targetMode);
+            
+            const icon = document.getElementById('theme-toggle-icon');
+            if(targetMode === 'light') {
+                icon.className = "fa-solid fa-moon";
+            } else {
+                icon.className = "fa-solid fa-sun";
+            }
+
+            renderDataVisualizations();
+            showSystemToast(`Switched interface paradigm to ${targetMode.toUpperCase()} mode.`);
+        }
+
+        /* ================= NOTIFICATION CENTER DROPDOWN CONTROLS ================= */
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notification-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function clearNotifications(event) {
+            event.stopPropagation();
+            document.querySelector('.notification-list').innerHTML = `
+                <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size:12px;">
+                    No pending action logs in array node queue.
+                </div>
+            `;
+            document.querySelector('.notification-indicator').style.display = 'none';
+            showSystemToast("Notification storage registers flushed clear.");
+        }
+
+        // Close panels on structural body outer clicks
+        window.onclick = function(event) {
+            if (!event.target.closest('.system-tray-btn')) {
+                const dropdown = document.getElementById('notification-dropdown');
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        }
+
+        /* ================= NAVIGATION ROUTING MATRICES ================= */
+        function showSection(sectionId) {
+            document.querySelectorAll('.sidebar a').forEach(el => el.classList.remove('nav-active'));
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            
+            const targetNav = document.getElementById(`nav-${sectionId}`) || event.currentTarget;
+            if(targetNav) targetNav.classList.add('nav-active');
+            
+            const targetSection = document.getElementById(sectionId);
+            if(targetSection) targetSection.classList.add('active');
+        }
+
+        /* ================= FILTER & LIVE SEARCH ARRAY MATRIX ================= */
+        function filterTaskTable() {
+            const query = document.getElementById('tableSearchInput').value.toLowerCase();
+            const filterValue = document.getElementById('tableStatusFilter').value.toLowerCase();
+            const rows = document.querySelectorAll('#tasks-data-table tbody tr');
+
+            rows.forEach(row => {
+                const project = row.querySelector('.task-project').innerText.toLowerCase();
+                const module = row.querySelector('.task-module').innerText.toLowerCase();
+                const badgeText = row.querySelector('.status-badge').innerText.toLowerCase();
+                
+                const matchSearch = project.includes(query) || module.includes(query);
+                const matchStatus = filterValue === "" || badgeText.includes(filterValue);
+
+                if(matchSearch && matchStatus) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        /* ================= NOTIFICATION INTERACTION SYSTEM ================= */
+        function showSystemToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast-popup';
+            toast.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#38bdf8; margin-right:8px;"></i> ${msg}`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(50px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function logoutUser() {
+    // 1. Clear authentication tokens
+    localStorage.removeItem('authToken');
+    sessionStorage.clear();
+
+    // 2. Redirect to login page
+    window.location.href = '/login';
+}
     </script>
 </body>
-
 </html>

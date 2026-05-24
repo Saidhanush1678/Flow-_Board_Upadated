@@ -1,12 +1,11 @@
 services:
   - type: web
-    name: flowboard-portal
+    name: flowboard-ai-app
     env: python
     buildCommand: pip install -r requirements.txt
-    # Switched to standard gunicorn threads worker pooling execution
-    startCommand: gunicorn -w 1 --threads 100 --bind 0.0.0.0:$PORT app:app
+    startCommand: gunicorn --worker-class eventlet -w 1 wsgi:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.10
+        value: 3.10.12
       - key: SECRET_KEY
         generateValue: true
